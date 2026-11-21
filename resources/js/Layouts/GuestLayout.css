@@ -1,0 +1,121 @@
+
+.guest-layout {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #f8fafc 55%, #ecfdf5 100%);
+    box-sizing: border-box;
+}
+
+/* BRAND / LOGO */
+.guest-brand {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.guest-brand-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: 14px;
+    transition: transform 0.2s ease;
+}
+
+.guest-brand-link:hover {
+    transform: translateY(-2px);
+}
+
+.guest-brand-logo {
+    display: block;
+    width: 68px;
+    height: 68px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.guest-brand-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+}
+
+.guest-brand-text h1 {
+    margin: 0;
+    color: #14532d;
+    font-size: 27px;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: -0.7px;
+}
+
+.guest-brand-text p {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+/* LOGIN CONTENT */
+.guest-content {
+    width: 100%;
+    max-width: 460px;
+    padding: 36px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    box-shadow: 0 15px 40px rgba(15, 23, 42, 0.07);
+    box-sizing: border-box;
+}
+
+/* MOBILE */
+@media (max-width: 480px) {
+    .guest-layout {
+        padding: 25px 15px;
+    }
+
+    .guest-brand {
+        margin-bottom: 22px;
+    }
+
+    .guest-brand-link {
+        gap: 11px;
+        padding: 8px;
+    }
+
+    .guest-brand-logo {
+        width: 54px;
+        height: 54px;
+    }
+
+    .guest-brand-text h1 {
+        font-size: 21px;
+    }
+
+    .guest-brand-text p {
+        font-size: 10px;
+    }
+
+    .guest-content {
+        padding: 25px 20px;
+        border-radius: 14px;
+    }
+}
+.guest-brand-logo {
+    display: block;
+    width: 68px;
+    height: 68px;
+    object-fit: contain;
+    flex-shrink: 0;
+    border-radius: 50%;
+}
