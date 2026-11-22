@@ -3,6 +3,10 @@ import { Head, Link } from '@inertiajs/react';
 import './Welcome.css';
 
 export default function Welcome({ canLogin, canRegister }) {
+    // Site ya majaribio kwa sasa.
+    // Baadaye tutafanya iwe dynamic kulingana na Site husika.
+    const portalUrl = '/portal/nacpas-main-site';
+
     const features = [
         {
             icon: '📡',
@@ -70,6 +74,14 @@ export default function Welcome({ canLogin, canRegister }) {
                         </nav>
 
                         <div className="welcome-nav-actions">
+                            <Link
+                                href={portalUrl}
+                                className="nav-portal-link"
+                            >
+                                <span>📶</span>
+                                WiFi Portal
+                            </Link>
+
                             {canLogin && (
                                 <Link href="/login" className="nav-login">
                                     Sign In
@@ -129,6 +141,14 @@ export default function Welcome({ canLogin, canRegister }) {
                                         Sign In
                                     </Link>
                                 )}
+
+                                <Link
+                                    href={portalUrl}
+                                    className="hero-portal-button"
+                                >
+                                    <span>📶</span>
+                                    Connect to WiFi
+                                </Link>
                             </div>
 
                             <div className="hero-trust">
@@ -255,7 +275,9 @@ export default function Welcome({ canLogin, canRegister }) {
                     <div className="welcome-section-container">
                         <div className="section-heading">
                             <span>OUR PLATFORM</span>
-                            <h2>Everything You Need to Manage Your WiFi Business</h2>
+                            <h2>
+                                Everything You Need to Manage Your WiFi Business
+                            </h2>
                             <p>
                                 Powerful tools designed to simplify your
                                 internet business operations.
@@ -365,6 +387,13 @@ export default function Welcome({ canLogin, canRegister }) {
                                     Sign In
                                 </Link>
                             )}
+
+                            <Link
+                                href={portalUrl}
+                                className="cta-portal"
+                            >
+                                📶 Explore WiFi Portal
+                            </Link>
                         </div>
                     </div>
                 </section>
@@ -388,6 +417,15 @@ export default function Welcome({ canLogin, canRegister }) {
                             © {new Date().getFullYear()} NACPAS Connect.
                             All rights reserved.
                         </p>
+
+                        <div className="footer-links">
+                            <Link href={portalUrl}>
+                                📶 WiFi Portal
+                            </Link>
+                            {canLogin && (
+                                <Link href="/login">Sign In</Link>
+                            )}
+                        </div>
 
                         <div className="footer-powered">
                             Powered by <strong>NAC Technologies</strong>
