@@ -2,7 +2,7 @@
 import { Head, Link } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import PackageForm from './PackageForm';
-import '../Packages.css';
+import './Packages.css';
 
 export default function Edit({ package: packageData, sites = [] }) {
     return (
