@@ -520,53 +520,79 @@
 /* PAYMENT NETWORK LOGOS */
 .payment-networks {
     width: 100%;
-    margin: 0 auto 30px;
-    padding: 18px 15px;
+    margin: 0 auto 24px;
+    padding: 14px 10px;
     background: #ffffff;
     border: 1px solid #e9eef2;
-    border-radius: 14px;
+    border-radius: 12px;
     text-align: center;
+    box-sizing: border-box;
 }
 
 .payment-networks-title {
-    margin: 0 0 17px;
+    margin: 0 0 13px;
     color: #64748b;
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
-    letter-spacing: 1.7px;
+    letter-spacing: 1.3px;
 }
 
 .payment-logos {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 30px;
+    flex-wrap: nowrap;
+    gap: 8px;
+    width: 100%;
 }
 
 .payment-logos img {
     display: block;
-    width: 85px;
-    height: 38px;
+    width: 100%;
+    max-width: 76px;
+    height: 30px;
+    min-width: 0;
     object-fit: contain;
+    flex: 1 1 0;
     transition: transform .2s ease;
 }
 
 .payment-logos img:hover {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
 }
 
+/* MOBILE */
 @media (max-width: 600px) {
     .payment-networks {
-        padding: 16px 10px;
+        padding: 12px 8px;
+        margin-bottom: 20px;
+    }
+
+    .payment-networks-title {
+        font-size: 8px;
+        margin-bottom: 11px;
+        letter-spacing: 1px;
     }
 
     .payment-logos {
-        gap: 18px 22px;
+        gap: 5px;
+        flex-wrap: nowrap;
     }
 
     .payment-logos img {
-        width: 68px;
-        height: 32px;
+        width: 20%;
+        max-width: 58px;
+        height: 25px;
+    }
+}
+
+/* VERY SMALL PHONES */
+@media (max-width: 360px) {
+    .payment-logos {
+        gap: 3px;
+    }
+
+    .payment-logos img {
+        height: 21px;
     }
 }
