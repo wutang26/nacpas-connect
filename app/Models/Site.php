@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+
 class Site extends Model
 {
     protected $fillable = [
@@ -68,5 +69,15 @@ class Site extends Model
 public function networkCommands(): HasMany
 {
     return $this->hasMany(NetworkCommand::class);
+}
+
+public function wifiNetworks(): HasMany
+{
+    return $this->hasMany(WifiNetwork::class);
+}
+
+public function qrCodes(): HasMany
+{
+    return $this->hasMany(QrCode::class);
 }
 }

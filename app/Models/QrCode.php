@@ -9,6 +9,8 @@ class QrCode extends Model
 {
     protected $fillable = [
         'site_id',
+        'wifi_network_id',
+        'qr_type',
         'code',
         'label',
         'target_url',
@@ -26,5 +28,10 @@ class QrCode extends Model
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
+    }
+
+    public function wifiNetwork(): BelongsTo
+    {
+        return $this->belongsTo(WifiNetwork::class);
     }
 }

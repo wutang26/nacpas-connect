@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Portal\HotspotController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\WifiNetworkController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -28,6 +29,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::resource('wifi-networks', WifiNetworkController::class)
+    ->except(['show'])
+    ->middleware('verified');
 });
 
 /*
