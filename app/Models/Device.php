@@ -50,4 +50,9 @@ class Device extends Model
     {
         return $this->hasMany(NetworkCredential::class);
     }
+
+    public function networkCommands(): HasMany
+{
+    return $this->hasMany(NetworkCommand::class);
+}
 }

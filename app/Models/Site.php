@@ -7,47 +7,66 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Organization extends Model
+class Site extends Model
 {
     protected $fillable = [
-        'owner_user_id',
+        'organization_id',
+        'created_by',
         'name',
-        'slug',
         'code',
-        'business_email',
-        'business_phone',
-        'billing_email',
+        'slug',
+        'description',
         'address',
         'region',
         'district',
+        'latitude',
+        'longitude',
         'timezone',
         'status',
     ];
 
-    public function owner(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(User::class, 'owner_user_id');
+        return [
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+        ];
+    }
+
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function users(): BelongsToMany
     {
-        return $this->belongsToMany(User::class)
-            ->withPivot(['role', 'status', 'joined_at'])
+        return $this->belongsToMany(User::class, 'site_user')
+            ->withPivot(['role', 'is_default', 'status'])
             ->withTimestamps();
     }
 
-    public function sites(): HasMany
+    public function devices(): HasMany
     {
-        return $this->hasMany(Site::class);
+        return $this->hasMany(Device::class);
     }
 
-    public function subscriptions(): HasMany
+    public function packages(): HasMany
     {
-        return $this->hasMany(OrganizationSubscription::class);
+        return $this->hasMany(Package::class);
     }
 
-    public function latestSubscription()
-    {
-        return $this->hasOne(OrganizationSubscription::class)->latestOfMany();
-    }
+    public function networkIntegrations(): HasMany
+{
+    return $this->hasMany(NetworkIntegration::class);
+}
+
+public function networkCommands(): HasMany
+{
+    return $this->hasMany(NetworkCommand::class);
+}
 }
