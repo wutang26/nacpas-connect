@@ -18,6 +18,7 @@ export default function AuthenticatedLayout({ children }) {
                 { label: 'Organizations', icon: '🏢', href: '/organizations' },
                 { label: 'Sites', icon: '📍', href: '/sites' },
                 { label: 'Users', icon: '👥', href: '/users' },
+                { label: 'WiFi Packages', icon: '📶', href: '/packages' },
             ],
         },
         {

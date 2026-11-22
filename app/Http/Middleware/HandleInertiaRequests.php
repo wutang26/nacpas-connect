@@ -8,14 +8,12 @@ use Inertia\Middleware;
 class HandleInertiaRequests extends Middleware
 {
     /**
-     * The root template that is loaded on the first page visit.
-     *
-     * @var string
+     * Root Blade template.
      */
     protected $rootView = 'app';
 
     /**
-     * Determine the current asset version.
+     * Asset version.
      */
     public function version(Request $request): ?string
     {
@@ -23,16 +21,39 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * Define the props that are shared by default.
-     *
-     * @return array<string, mixed>
+     * Shared data available on every Inertia page.
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
         return [
             ...parent::share($request),
+
+            'app' => [
+                'name' => config('app.name', 'NACPAS Connect'),
+                'url' => config('app.url'),
+            ],
+
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+
+                    'roles' => $user->getRoleNames()->values(),
+
+                    'permissions' => $user->getAllPermissions()
+                        ->pluck('name')
+                        ->values(),
+                ] : null,
+            ],
+
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+                'warning' => fn () => $request->session()->get('warning'),
+                'info' => fn () => $request->session()->get('info'),
             ],
         ];
     }

@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Portal\HotspotController;
+use App\Http\Controllers\PackageController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -20,6 +21,10 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+
+    Route::resource('packages', PackageController::class)
+    ->except(['show'])
+    ->middleware('verified');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -37,5 +42,9 @@ Route::prefix('portal')
         Route::get('/{site:slug}', [HotspotController::class, 'show'])
             ->name('show');
     });
+
+
+
+
 
 require __DIR__.'/auth.php';
