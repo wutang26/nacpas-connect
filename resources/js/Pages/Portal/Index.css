@@ -516,3 +516,57 @@
         text-align: center;
     }
 }
+
+/* PAYMENT NETWORK LOGOS */
+.payment-networks {
+    width: 100%;
+    margin: 0 auto 30px;
+    padding: 18px 15px;
+    background: #ffffff;
+    border: 1px solid #e9eef2;
+    border-radius: 14px;
+    text-align: center;
+}
+
+.payment-networks-title {
+    margin: 0 0 17px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.7px;
+}
+
+.payment-logos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.payment-logos img {
+    display: block;
+    width: 85px;
+    height: 38px;
+    object-fit: contain;
+    transition: transform .2s ease;
+}
+
+.payment-logos img:hover {
+    transform: translateY(-3px);
+}
+
+@media (max-width: 600px) {
+    .payment-networks {
+        padding: 16px 10px;
+    }
+
+    .payment-logos {
+        gap: 18px 22px;
+    }
+
+    .payment-logos img {
+        width: 68px;
+        height: 32px;
+    }
+}

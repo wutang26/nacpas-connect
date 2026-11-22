@@ -104,6 +104,23 @@ export default function Index({ site, packages = [] }) {
                         </div>
                     </section>
 
+
+                    {/* SUPPORTED PAYMENT NETWORKS */}
+                    <section className="payment-networks">
+                        <p className="payment-networks-title">
+                            MALIPO KUPITIA MITANDAO YOTE
+                        </p>
+
+                        <div className="payment-logos">
+                            <img src="/images/vodacom.png" alt="Vodacom" />
+                            <img src="/images/airtel.png" alt="Airtel Money" />
+                            <img src="/images/yas.png" alt="Mixx by Yas" />
+                            <img src="/images/halotel.png" alt="HaloPesa" />
+                            <img src="/images/ttcl.png" alt="TTCL" />
+                        </div>
+                    </section>
+
+
                     {/* PACKAGES */}
                     <section className="portal-panel">
                         <div className="panel-heading">
