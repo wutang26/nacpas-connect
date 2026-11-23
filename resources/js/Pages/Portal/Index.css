@@ -596,3 +596,136 @@
         height: 21px;
     }
 }
+/* =====================================
+   ANIMATED WIFI ICON
+===================================== */
+
+.wifi-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 90px;
+    height: 90px;
+    margin: 0 auto 22px;
+    border-radius: 50%;
+    background: rgba(22, 163, 74, 0.08);
+    animation: wifi-icon-float 3s ease-in-out infinite;
+}
+
+.wifi-icon::before,
+.wifi-icon::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(22, 163, 74, 0.35);
+    border-radius: 50%;
+    animation: wifi-ring-pulse 2.8s ease-out infinite;
+}
+
+.wifi-icon::after {
+    animation-delay: 1.4s;
+}
+
+.wifi-icon svg {
+    position: relative;
+    z-index: 2;
+    width: 58px;
+    height: 58px;
+    overflow: visible;
+    fill: none;
+    stroke: #16a34a;
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.wifi-wave {
+    opacity: 0.25;
+    animation: wifi-wave-glow 1.8s ease-in-out infinite;
+}
+
+.wifi-wave-one {
+    animation-delay: 0s;
+}
+
+.wifi-wave-two {
+    animation-delay: 0.3s;
+}
+
+.wifi-wave-three {
+    animation-delay: 0.6s;
+}
+
+.wifi-dot {
+    fill: #16a34a;
+    stroke: none;
+    transform-origin: center;
+    animation: wifi-dot-pulse 1.2s ease-in-out infinite;
+}
+
+/* WiFi waves lighting up */
+
+@keyframes wifi-wave-glow {
+    0%, 100% {
+        opacity: 0.25;
+        stroke-width: 3;
+    }
+
+    50% {
+        opacity: 1;
+        stroke-width: 4.5;
+    }
+}
+
+/* Center dot animation */
+
+@keyframes wifi-dot-pulse {
+    0%, 100% {
+        opacity: 0.65;
+        transform: scale(0.85);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.3);
+    }
+}
+
+/* Outer signal rings */
+
+@keyframes wifi-ring-pulse {
+    0% {
+        transform: scale(0.85);
+        opacity: 0.65;
+    }
+
+    100% {
+        transform: scale(1.65);
+        opacity: 0;
+    }
+}
+
+/* Gentle floating */
+
+@keyframes wifi-icon-float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Accessibility */
+
+@media (prefers-reduced-motion: reduce) {
+    .wifi-icon,
+    .wifi-icon::before,
+    .wifi-icon::after,
+    .wifi-wave,
+    .wifi-dot {
+        animation: none !important;
+    }
+}

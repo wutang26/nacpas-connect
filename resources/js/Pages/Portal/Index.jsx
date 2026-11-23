@@ -74,15 +74,28 @@ export default function Index({ site, packages = [] }) {
                 <main className="portal-container">
 
                     <section className="portal-hero">
-                        <div className="wifi-icon">
+                        {/* <div className="wifi-icon">
                             <svg viewBox="0 0 64 64" aria-hidden="true">
                                 <path d="M8 24C21 12 43 12 56 24" />
                                 <path d="M16 33C25 25 39 25 48 33" />
                                 <path d="M24 42C29 38 35 38 40 42" />
                                 <circle cx="32" cy="51" r="3" />
                             </svg>
-                        </div>
+                        </div> */}
+                        <div className="wifi-icon" aria-label="WiFi inapatikana">
+                            <svg viewBox="0 0 64 64" aria-hidden="true">
+                                <path className="wifi-wave wifi-wave-one"
+                                    d="M8 24C21 12 43 12 56 24" />
 
+                                <path className="wifi-wave wifi-wave-two"
+                                    d="M16 33C25 25 39 25 48 33" />
+
+                                <path className="wifi-wave wifi-wave-three"
+                                    d="M24 42C29 38 35 38 40 42" />
+
+                                <circle className="wifi-dot" cx="32" cy="51" r="3" />
+                            </svg>
+                        </div>
                         <span className="portal-eyebrow">
                             KARIBU KWENYE WIFI
                         </span>
