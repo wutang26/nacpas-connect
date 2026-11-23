@@ -1,51 +1,96 @@
 
-import { Head } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import './Index.css';
 
 const formatMoney = (amount) =>
     new Intl.NumberFormat('en-TZ', {
         maximumFractionDigits: 0,
-    }).format(Number(amount));
+    }).format(Number(amount || 0));
 
 const formatDuration = (minutes) => {
-    if (minutes < 60) {
-        return `${minutes} dakika`;
+    const duration = Number(minutes || 0);
+
+    if (duration < 60) {
+        return `${duration} dakika`;
     }
 
-    if (minutes % 1440 === 0) {
-        return `${minutes / 1440} siku`;
+    if (duration % 1440 === 0) {
+        return `${duration / 1440} siku`;
     }
 
-    if (minutes % 60 === 0) {
-        return `${minutes / 60} saa`;
+    if (duration % 60 === 0) {
+        return `${duration / 60} saa`;
     }
 
-    return `${Math.floor(minutes / 60)} saa ${minutes % 60} dakika`;
+    return `${Math.floor(duration / 60)} saa ${duration % 60} dakika`;
 };
 
 const formatSpeed = (speed) => {
     if (!speed) return 'Haijawekwa';
 
-    return speed >= 1024
-        ? `${(speed / 1024).toFixed(1)} Mbps`
+    return Number(speed) >= 1024
+        ? `${(Number(speed) / 1024).toFixed(1)} Mbps`
         : `${speed} Kbps`;
+};
+
+// Normalize Tanzanian mobile numbers for validation.
+const normalizePhone = (value) => {
+    return value.replace(/[\s\-()]/g, '');
+};
+
+const isValidTanzanianPhone = (value) => {
+    const phone = normalizePhone(value);
+
+    return /^(0[67]\d{8}|\+255[67]\d{8}|255[67]\d{8})$/.test(phone);
 };
 
 export default function Index({ site, packages = [] }) {
     const [selectedPackage, setSelectedPackage] = useState(null);
-    const [phone, setPhone] = useState('');
+
+    const {
+        data,
+        setData,
+        post,
+        processing,
+        errors,
+    } = useForm({
+        package_id: '',
+        phone: '',
+    });
+
+    const phone = data.phone;
 
     const selected = packages.find(
-        (item) => item.id === selectedPackage
+        (item) => Number(item.id) === Number(selectedPackage)
     );
 
-    const normalizedPhone = phone.replace(/[\s-]/g, '');
+    const validPhone = isValidTanzanianPhone(phone);
 
-    const validPhone =
-        /^(0[67]\d{8}|\+255[67]\d{8}|255[67]\d{8})$/.test(
-            normalizedPhone
-        );
+    const handlePackageSelection = (packageId) => {
+        setSelectedPackage(packageId);
+        setData('package_id', packageId);
+    };
+
+    const handlePhoneChange = (event) => {
+        setData('phone', event.target.value);
+    };
+
+    const handleCheckout = (event) => {
+        event.preventDefault();
+
+        if (!selected) {
+            return;
+        }
+
+        if (!validPhone) {
+            return;
+        }
+
+        post(`/portal/${site.slug}/checkout`, {
+            preserveScroll: true,
+        });
+    };
 
     return (
         <>
@@ -59,7 +104,7 @@ export default function Index({ site, packages = [] }) {
                         <div className="portal-logo-icon">N</div>
 
                         <div className="portal-logo-text">
-                            <strong>NACPAS CONNECT</strong>
+                            <strong>NACPASI</strong>
                             <span>SMART WIFI ACCESS</span>
                         </div>
                     </a>
@@ -75,20 +120,35 @@ export default function Index({ site, packages = [] }) {
 
                     <section className="portal-hero">
 
-                        <div className="wifi-icon" aria-label="WiFi inapatikana">
+                        <div
+                            className="wifi-icon"
+                            aria-label="WiFi inapatikana"
+                        >
                             <svg viewBox="0 0 64 64" aria-hidden="true">
-                                <path className="wifi-wave wifi-wave-one"
-                                    d="M8 24C21 12 43 12 56 24" />
+                                <path
+                                    className="wifi-wave wifi-wave-one"
+                                    d="M8 24C21 12 43 12 56 24"
+                                />
 
-                                <path className="wifi-wave wifi-wave-two"
-                                    d="M16 33C25 25 39 25 48 33" />
+                                <path
+                                    className="wifi-wave wifi-wave-two"
+                                    d="M16 33C25 25 39 25 48 33"
+                                />
 
-                                <path className="wifi-wave wifi-wave-three"
-                                    d="M24 42C29 38 35 38 40 42" />
+                                <path
+                                    className="wifi-wave wifi-wave-three"
+                                    d="M24 42C29 38 35 38 40 42"
+                                />
 
-                                <circle className="wifi-dot" cx="32" cy="51" r="3" />
+                                <circle
+                                    className="wifi-dot"
+                                    cx="32"
+                                    cy="51"
+                                    r="3"
+                                />
                             </svg>
                         </div>
+
                         <span className="portal-eyebrow">
                             KARIBU KWENYE WIFI
                         </span>
@@ -106,10 +166,12 @@ export default function Index({ site, packages = [] }) {
                         <div className="site-location">
                             <span>⌖</span>
                             <strong>{site.name}</strong>
-                            {site.region && <span>· {site.region}</span>}
+
+                            {site.region && (
+                                <span>· {site.region}</span>
+                            )}
                         </div>
                     </section>
-
 
                     {/* SUPPORTED PAYMENT NETWORKS */}
                     <section className="payment-networks">
@@ -126,9 +188,9 @@ export default function Index({ site, packages = [] }) {
                         </div>
                     </section>
 
-
                     {/* PACKAGES */}
                     <section className="portal-panel">
+
                         <div className="panel-heading">
                             <div>
                                 <h2>Vifurushi vya Internet</h2>
@@ -142,16 +204,17 @@ export default function Index({ site, packages = [] }) {
 
                         {packages.length > 0 ? (
                             <div className="package-grid">
+
                                 {packages.map((item) => {
                                     const active =
-                                        selectedPackage === item.id;
+                                        Number(selectedPackage) === Number(item.id);
 
                                     return (
                                         <button
                                             type="button"
                                             key={item.id}
                                             onClick={() =>
-                                                setSelectedPackage(item.id)
+                                                handlePackageSelection(item.id)
                                             }
                                             className={`package-card ${
                                                 active ? 'active' : ''
@@ -172,7 +235,10 @@ export default function Index({ site, packages = [] }) {
                                                 <strong>
                                                     {formatMoney(item.price)}
                                                 </strong>
-                                                <span>TZS</span>
+
+                                                <span>
+                                                    {item.currency || 'TZS'}
+                                                </span>
                                             </div>
 
                                             <div className="package-duration">
@@ -184,8 +250,10 @@ export default function Index({ site, packages = [] }) {
                                             <div className="package-divider" />
 
                                             <div className="package-speeds">
+
                                                 <div>
                                                     <span>Download</span>
+
                                                     <strong>
                                                         {formatSpeed(
                                                             item.download_speed_kbps
@@ -195,12 +263,14 @@ export default function Index({ site, packages = [] }) {
 
                                                 <div>
                                                     <span>Upload</span>
+
                                                     <strong>
                                                         {formatSpeed(
                                                             item.upload_speed_kbps
                                                         )}
                                                     </strong>
                                                 </div>
+
                                             </div>
 
                                             {item.description && (
@@ -211,6 +281,7 @@ export default function Index({ site, packages = [] }) {
                                         </button>
                                     );
                                 })}
+
                             </div>
                         ) : (
                             <div className="portal-empty">
@@ -218,10 +289,18 @@ export default function Index({ site, packages = [] }) {
                                 <p>Tafadhali wasiliana na msimamizi.</p>
                             </div>
                         )}
+
+                        {errors.package_id && (
+                            <p className="phone-error">
+                                {errors.package_id}
+                            </p>
+                        )}
+
                     </section>
 
                     {/* CUSTOMER DETAILS */}
                     <section className="portal-panel checkout-panel">
+
                         <div className="panel-heading">
                             <div>
                                 <h2>Maelezo yako</h2>
@@ -229,64 +308,92 @@ export default function Index({ site, packages = [] }) {
                             </div>
                         </div>
 
-                        <label htmlFor="customer-phone">
-                            Namba ya simu
-                        </label>
+                        <form onSubmit={handleCheckout}>
 
-                        <div className="phone-field">
-                            <span>🇹🇿 +255</span>
+                            <label htmlFor="customer-phone">
+                                Namba ya simu
+                            </label>
 
-                            <input
-                                id="customer-phone"
-                                type="tel"
-                                inputMode="tel"
-                                autoComplete="tel"
-                                placeholder="0712 345 678"
-                                value={phone}
-                                onChange={(event) =>
-                                    setPhone(event.target.value)
+                            <div className="phone-field">
+                                <span>🇹🇿 +255</span>
+
+                                <input
+                                    id="customer-phone"
+                                    type="tel"
+                                    inputMode="tel"
+                                    autoComplete="tel"
+                                    placeholder="0712 345 678"
+                                    value={phone}
+                                    onChange={handlePhoneChange}
+                                    disabled={processing}
+                                    aria-invalid={
+                                        Boolean(errors.phone) ||
+                                        (phone.length > 0 && !validPhone)
+                                    }
+                                />
+                            </div>
+
+                            {phone.length > 0 && !validPhone && (
+                                <p className="phone-error">
+                                    Tafadhali ingiza namba sahihi ya Tanzania.
+                                    Mfano: 0712345678.
+                                </p>
+                            )}
+
+                            {errors.phone && (
+                                <p className="phone-error">
+                                    {errors.phone}
+                                </p>
+                            )}
+
+                            <div className="order-summary">
+
+                                <div>
+                                    <span>Kifurushi</span>
+
+                                    <strong>
+                                        {selected?.name ||
+                                            'Hakuna kilichochaguliwa'}
+                                    </strong>
+                                </div>
+
+                                <div>
+                                    <span>Kiasi cha kulipa</span>
+
+                                    <strong>
+                                        {selected
+                                            ? `${selected.currency || 'TZS'} ${formatMoney(selected.price)}`
+                                            : 'TZS 0'}
+                                    </strong>
+                                </div>
+
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="continue-button"
+                                disabled={
+                                    !selected ||
+                                    !validPhone ||
+                                    processing
                                 }
-                            />
-                        </div>
+                            >
+                                {processing
+                                    ? 'Inatengeneza ombi...'
+                                    : 'Endelea'}
 
-                        {phone.length > 0 && !validPhone && (
-                            <p className="phone-error">
-                                Tafadhali ingiza namba sahihi ya Tanzania.
-                            </p>
-                        )}
+                                {!processing && <span>→</span>}
+                            </button>
 
-                        <div className="order-summary">
-                            <div>
-                                <span>Kifurushi</span>
-                                <strong>
-                                    {selected?.name || 'Hakuna kilichochaguliwa'}
-                                </strong>
-                            </div>
-
-                            <div>
-                                <span>Kiasi cha kulipa</span>
-                                <strong>
-                                    {selected
-                                        ? `TZS ${formatMoney(selected.price)}`
-                                        : 'TZS 0'}
-                                </strong>
-                            </div>
-                        </div>
-
-                        <button
-                            type="button"
-                            className="continue-button"
-                            disabled={!selected || !validPhone}
-                        >
-                            Endelea
-                            <span>→</span>
-                        </button>
+                        </form>
 
                         <p className="demo-notice">
-                            <strong>Angalizo:</strong> Malipo ya simu
-                            na kuidhinisha internet bado havijaunganishwa.
-                            Hakuna malipo yatakayofanyika kwa sasa.
+                            <strong>Angalizo:</strong> Kwa sasa mfumo
+                            unatumia checkout ya majaribio. Hakuna fedha
+                            zitakazokatwa na internet haitawashwa mpaka
+                            malipo halisi na Omada viunganishwe.
                         </p>
+
                     </section>
 
                 </main>
@@ -298,9 +405,10 @@ export default function Index({ site, packages = [] }) {
                     </span>
 
                     <span>
-                        © {new Date().getFullYear()} NACPAS Connect
+                        © {new Date().getFullYear()} NACPASI
                     </span>
                 </footer>
+
             </div>
         </>
     );

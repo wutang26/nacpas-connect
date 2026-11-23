@@ -50,6 +50,33 @@ Route::prefix('portal')
 
 
 
+/*
+|--------------------------------------------------------------------------
+| Customer Captive Portal
+|--------------------------------------------------------------------------
+*/
+
+Route::prefix('portal')
+    ->name('portal.')
+    ->group(function () {
+
+        Route::get('/{site:slug}', [HotspotController::class, 'show'])
+            ->name('show');
+
+        Route::post('/{site:slug}/checkout', [
+            \App\Http\Controllers\Portal\PaymentController::class,
+            'checkout'
+        ])
+            ->middleware('throttle:10,1')
+            ->name('checkout');
+
+        Route::get('/{site:slug}/payment/{reference}', [
+            \App\Http\Controllers\Portal\PaymentController::class,
+            'pending'
+        ])
+            ->name('payment.pending');
+    });
+
 
 
 require __DIR__.'/auth.php';
