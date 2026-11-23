@@ -9,8 +9,7 @@ return [
     |
     | This file is for storing the credentials for third party services such
     | as Resend, Postmark, AWS, and more. This file provides the de facto
-    | location for this type of information, allowing packages to have
-    | a conventional file to locate the various service credentials.
+    | location for packages to locate their credentials.
     |
     */
 
@@ -34,5 +33,22 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | FastLipa Payment Gateway
+    |--------------------------------------------------------------------------
+    */
+
+    'fastlipa' => [
+    'base_url' => env('FASTLIPA_BASE_URL', 'https://api.fastlipa.com/v1'),
+    'api_key' => env('FASTLIPA_API_KEY'),
+    'webhook_secret' => env('FASTLIPA_WEBHOOK_SECRET'),
+],
+
+    // 'fastlipa' => [
+    //     'base_url' => env('FASTLIPA_BASE_URL', 'https://api.fastlipa.com/v1'),
+    //     'api_key' => env('FASTLIPA_API_KEY'),
+    // ],
 
 ];

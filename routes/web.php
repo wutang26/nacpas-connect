@@ -80,12 +80,12 @@ Route::middleware(['auth', 'verified'])
 |--------------------------------------------------------------------------
 */
 
-Route::prefix('portal')
-    ->name('portal.')
-    ->group(function () {
-        Route::get('/{site:slug}', [HotspotController::class, 'show'])
-            ->name('show');
-    });
+// Route::prefix('portal')
+//     ->name('portal.')
+//     ->group(function () {
+//         Route::get('/{site:slug}', [HotspotController::class, 'show'])
+//             ->name('show');
+//     });
 
 
 
