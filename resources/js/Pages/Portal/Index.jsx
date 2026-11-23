@@ -55,7 +55,7 @@ export default function Index({ site, packages = [] }) {
 
                 {/* HEADER */}
                 <header className="portal-header">
-                    <a href="#" className="portal-logo">
+                    <a href="/" className="portal-logo">
                         <div className="portal-logo-icon">N</div>
 
                         <div className="portal-logo-text">
@@ -74,14 +74,7 @@ export default function Index({ site, packages = [] }) {
                 <main className="portal-container">
 
                     <section className="portal-hero">
-                        {/* <div className="wifi-icon">
-                            <svg viewBox="0 0 64 64" aria-hidden="true">
-                                <path d="M8 24C21 12 43 12 56 24" />
-                                <path d="M16 33C25 25 39 25 48 33" />
-                                <path d="M24 42C29 38 35 38 40 42" />
-                                <circle cx="32" cy="51" r="3" />
-                            </svg>
-                        </div> */}
+
                         <div className="wifi-icon" aria-label="WiFi inapatikana">
                             <svg viewBox="0 0 64 64" aria-hidden="true">
                                 <path className="wifi-wave wifi-wave-one"
