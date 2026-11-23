@@ -61,7 +61,7 @@ export default function Welcome({ canLogin, canRegister }) {
                             />
 
                             <div>
-                                <strong>NACPAS Connect</strong>
+                                <strong>NACPASI Connect</strong>
                                 <span>Smart WiFi Management</span>
                             </div>
                         </Link>
@@ -115,7 +115,7 @@ export default function Welcome({ canLogin, canRegister }) {
                             </h1>
 
                             <p>
-                                NACPAS Connect is an intelligent WiFi hotspot
+                                NACPASI Connect is an intelligent WiFi hotspot
                                 management and billing platform designed to
                                 help internet service providers and hotspot
                                 businesses manage customers, packages,
@@ -168,7 +168,7 @@ export default function Welcome({ canLogin, canRegister }) {
                                             src="/images/logo.png"
                                             alt=""
                                         />
-                                        <span>NACPAS Connect</span>
+                                        <span>NACPASI Connect</span>
                                     </div>
 
                                     <div className="preview-status">
@@ -215,46 +215,46 @@ export default function Welcome({ canLogin, canRegister }) {
                                         </div>
 
                                         
-<div className="network-illustration">
-    {/* CONNECTION LINES */}
-    <div className="network-line line-one"></div>
-    <div className="network-line line-two"></div>
-    <div className="network-line line-three"></div>
-    <div className="network-line line-four"></div>
+                                <div className="network-illustration">
+                                    {/* CONNECTION LINES */}
+                                    <div className="network-line line-one"></div>
+                                    <div className="network-line line-two"></div>
+                                    <div className="network-line line-three"></div>
+                                    <div className="network-line line-four"></div>
 
-    {/* CENTRAL WIFI */}
-    <div className="network-center">
-        <div className="wifi-pulse pulse-one"></div>
-        <div className="wifi-pulse pulse-two"></div>
-        <div className="wifi-pulse pulse-three"></div>
+                                    {/* CENTRAL WIFI */}
+                                    <div className="network-center">
+                                        <div className="wifi-pulse pulse-one"></div>
+                                        <div className="wifi-pulse pulse-two"></div>
+                                        <div className="wifi-pulse pulse-three"></div>
 
-        <div className="wifi-center-content">
-            <span className="wifi-symbol">⌁</span>
-            <strong>WiFi</strong>
-            <small>
-                <span className="wifi-online-dot"></span>
-                Connected
-            </small>
-        </div>
-    </div>
+                                        <div className="wifi-center-content">
+                                            <span className="wifi-symbol">⌁</span>
+                                            <strong>WiFi</strong>
+                                            <small>
+                                                <span className="wifi-online-dot"></span>
+                                                Connected
+                                            </small>
+                                        </div>
+                                    </div>
 
-    {/* CONNECTED DEVICES */}
-    <div className="network-node node-one">
-        <span>📱</span>
-    </div>
+                                    {/* CONNECTED DEVICES */}
+                                    <div className="network-node node-one">
+                                        <span>📱</span>
+                                    </div>
 
-    <div className="network-node node-two">
-        <span>💻</span>
-    </div>
+                                    <div className="network-node node-two">
+                                        <span>💻</span>
+                                    </div>
 
-    <div className="network-node node-three">
-        <span>📡</span>
-    </div>
+                                    <div className="network-node node-three">
+                                        <span>📡</span>
+                                    </div>
 
-    <div className="network-node node-four">
-        <span>📲</span>
-    </div>
-</div>
+                                    <div className="network-node node-four">
+                                        <span>📲</span>
+                                    </div>
+                                </div>
 
                                     </div>
 
@@ -330,7 +330,7 @@ export default function Welcome({ canLogin, canRegister }) {
 
                             <p>
                                 Whether you operate one public WiFi hotspot
-                                or manage multiple locations, NACPAS Connect
+                                or manage multiple locations, NACPASI Connect
                                 gives you the tools to control your operations,
                                 serve your customers and grow your business.
                             </p>
@@ -361,7 +361,7 @@ export default function Welcome({ canLogin, canRegister }) {
                                     src="/images/logo.png"
                                     alt="NACPAS Connect"
                                 />
-                                <h3>NACPAS Connect</h3>
+                                <h3>NACPASI Connect</h3>
                                 <p>Connect. Manage. Grow.</p>
                                 <div className="about-wifi-icon">⌁</div>
                                 <span>SMART WIFI PLATFORM</span>
@@ -382,7 +382,7 @@ export default function Welcome({ canLogin, canRegister }) {
                         </h2>
 
                         <p>
-                            Simplify your hotspot operations with NACPAS
+                            Simplify your hotspot operations with NACPASI
                             Connect.
                         </p>
 
@@ -422,13 +422,13 @@ export default function Welcome({ canLogin, canRegister }) {
                             />
 
                             <div>
-                                <strong>NACPAS Connect</strong>
+                                <strong>NACPASI Connect</strong>
                                 <span>Smart WiFi Management Platform</span>
                             </div>
                         </div>
 
                         <p>
-                            © {new Date().getFullYear()} NACPAS Connect.
+                            © {new Date().getFullYear()} NACPASI Connect.
                             All rights reserved.
                         </p>
 
