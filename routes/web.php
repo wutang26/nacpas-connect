@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Portal\HotspotController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\WifiNetworkController;
+use App\Http\Controllers\Admin\QrCodeController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -34,6 +35,44 @@ Route::middleware('auth')->group(function () {
     ->except(['show'])
     ->middleware('verified');
 });
+
+/*
+|--------------------------------------------------------------------------
+| QR Code Management
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('qr-codes')
+    ->name('admin.qr-codes.')
+    ->group(function () {
+
+        Route::get('/', [QrCodeController::class, 'index'])
+            ->middleware('permission:platform.qr_codes.view')
+            ->name('index');
+
+        Route::post('/sites/{site}/generate', [
+            QrCodeController::class,
+            'generate',
+        ])
+            ->middleware('permission:platform.qr_codes.manage')
+            ->name('generate');
+
+        Route::get('/{qrCode}/image', [
+            QrCodeController::class,
+            'image',
+        ])
+            ->middleware('permission:platform.qr_codes.view')
+            ->name('image');
+
+        Route::get('/{qrCode}/download', [
+            QrCodeController::class,
+            'download',
+        ])
+            ->middleware('permission:platform.qr_codes.view')
+            ->name('download');
+    });
+
 
 /*
 |--------------------------------------------------------------------------

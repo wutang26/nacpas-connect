@@ -61,6 +61,11 @@ export default function AuthenticatedLayout({ children }) {
                     icon: '📡',
                     href: '/wifi-networks',
                 },
+                {
+                    label: 'QR Code Management',
+                    icon: '▦',
+                    href: '/qr-codes',
+                },
             ],
         },
         {

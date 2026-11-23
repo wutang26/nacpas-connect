@@ -29,6 +29,9 @@ class PermissionSeeder extends Seeder
             'platform.payments.manage',
             'platform.reports.view',
             'platform.settings.manage',
+
+            'platform.qr_codes.view',
+            'platform.qr_codes.manage',
         ];
 
         foreach ($permissions as $permission) {
