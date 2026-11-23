@@ -129,7 +129,7 @@ export default function AuthenticatedLayout({ children }) {
 
                     {!sidebarCollapsed && (
                         <div className="brand-info">
-                            <h2>NACPAS</h2>
+                            <h2>NACPASI</h2>
                             <span>CONNECT</span>
                         </div>
                     )}
@@ -257,7 +257,7 @@ export default function AuthenticatedLayout({ children }) {
                         <div className="header-title">
                             <strong>Platform Administration</strong>
                             <span>
-                                Manage your NACPAS Connect platform
+                                Manage your NACPASI Connect platform
                             </span>
                         </div>
                     </div>
@@ -290,7 +290,7 @@ export default function AuthenticatedLayout({ children }) {
 
                 <footer className="nac-footer">
                     <span>
-                        © {new Date().getFullYear()} NACPAS Connect
+                        © {new Date().getFullYear()} NACPASI Connect
                     </span>
 
                     <span>Powered by NAC Technologies</span>
