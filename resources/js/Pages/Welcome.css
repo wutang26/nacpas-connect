@@ -1987,3 +1987,611 @@ html {
         justify-content: center;
     }
 }
+
+/* =========================================
+   ANIMATED NETWORK MANAGEMENT
+========================================= */
+
+.network-illustration {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+/* CENTRAL WIFI DEVICE */
+.network-center {
+    position: absolute;
+    z-index: 5;
+    width: 125px;
+    height: 125px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(
+        circle,
+        rgba(34, 197, 94, 0.20),
+        rgba(34, 197, 94, 0.08) 55%,
+        rgba(34, 197, 94, 0.02)
+    );
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    box-shadow:
+        0 0 20px rgba(34, 197, 94, 0.20),
+        inset 0 0 20px rgba(34, 197, 94, 0.10);
+    animation: wifi-center-float 3s ease-in-out infinite;
+}
+
+/* WIFI CONTENT */
+.wifi-center-content {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+.wifi-symbol {
+    font-size: 43px;
+    line-height: 1;
+    font-weight: bold;
+    color: #16a34a;
+    text-shadow: 0 0 15px rgba(34, 197, 94, 0.65);
+    animation: wifi-signal 1.5s ease-in-out infinite;
+}
+
+.wifi-center-content strong {
+    color: #166534;
+    font-size: 15px;
+    letter-spacing: 1px;
+}
+
+.wifi-center-content small {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #15803d;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.wifi-online-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+    animation: online-blink 1.2s ease-in-out infinite;
+}
+
+/* WIFI PULSE WAVES */
+.wifi-pulse {
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(34, 197, 94, 0.65);
+    border-radius: 50%;
+    animation: wifi-wave 3s ease-out infinite;
+    pointer-events: none;
+}
+
+.pulse-two {
+    animation-delay: 1s;
+}
+
+.pulse-three {
+    animation-delay: 2s;
+}
+
+/* DEVICE NODES */
+.network-node {
+    position: absolute;
+    z-index: 6;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    background: #ffffff;
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.12);
+    animation: device-float 3s ease-in-out infinite;
+    transition:
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.network-node span {
+    display: block;
+    font-size: 25px;
+    animation: device-icon-pulse 2s ease-in-out infinite;
+}
+
+.network-node:hover {
+    border-color: #22c55e;
+    box-shadow: 0 0 22px rgba(34, 197, 94, 0.35);
+}
+
+/* DIFFERENT DEVICE ANIMATION TIMINGS */
+.node-one {
+    animation-delay: 0s;
+}
+
+.node-two {
+    animation-delay: 0.5s;
+}
+
+.node-three {
+    animation-delay: 1s;
+}
+
+.node-four {
+    animation-delay: 1.5s;
+}
+
+/* CONNECTION LINE GLOW */
+.network-line {
+    position: absolute;
+    z-index: 1;
+    overflow: hidden;
+    background: rgba(34, 197, 94, 0.18);
+}
+
+.network-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        #22c55e,
+        #86efac,
+        transparent
+    );
+    animation: network-data-flow 2s linear infinite;
+}
+
+.line-two::after {
+    animation-delay: 0.5s;
+}
+
+.line-three::after {
+    animation-delay: 1s;
+}
+
+.line-four::after {
+    animation-delay: 1.5s;
+}
+
+/* ANIMATION KEYFRAMES */
+@keyframes wifi-center-float {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(-7px) scale(1.04);
+    }
+}
+
+@keyframes wifi-signal {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.12);
+        opacity: 0.75;
+    }
+}
+
+@keyframes wifi-wave {
+    0% {
+        transform: scale(0.75);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(2.1);
+        opacity: 0;
+    }
+}
+
+@keyframes device-float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-9px);
+    }
+}
+
+@keyframes device-icon-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.12);
+    }
+}
+
+@keyframes online-blink {
+    0%, 100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.35;
+    }
+}
+
+@keyframes network-data-flow {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* ACCESSIBILITY: REDUCE MOTION */
+@media (prefers-reduced-motion: reduce) {
+    .network-center,
+    .network-node,
+    .network-node span,
+    .wifi-symbol,
+    .wifi-pulse,
+    .wifi-online-dot,
+    .network-line::after {
+        animation: none !important;
+    }
+}
+
+/* =========================================
+   FINAL NETWORK POSITIONS + ANIMATIONS
+   Preserve original device positions
+========================================= */
+
+.network-illustration {
+    position: relative;
+    width: 100%;
+    height: 190px;
+    max-width: 420px;
+    margin: 10px auto 0;
+    overflow: visible;
+    isolation: isolate;
+}
+
+/* CENTRAL WIFI - ORIGINAL CENTER POSITION */
+.network-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 5;
+
+    width: 105px;
+    height: 105px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+    border: 8px solid #ffffff;
+
+    background: radial-gradient(
+        circle,
+        #e8f7ed 0%,
+        #d9f5e2 100%
+    );
+
+    box-shadow:
+        0 0 0 1px #b8e4c5,
+        0 0 20px rgba(34, 197, 94, 0.20);
+
+    transform: translate(-50%, -50%);
+    animation: wifi-center-glow 3s ease-in-out infinite;
+}
+
+/* WIFI CONTENT */
+.wifi-center-content {
+    position: relative;
+    z-index: 3;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+.wifi-symbol {
+    color: #16a34a;
+    font-size: 34px;
+    line-height: 1;
+    font-weight: bold;
+    animation: wifi-signal 1.5s ease-in-out infinite;
+}
+
+.wifi-center-content strong {
+    color: #14532d;
+    font-size: 12px;
+}
+
+.wifi-center-content small {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #5c946e;
+    font-size: 8px;
+}
+
+.wifi-online-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+    animation: online-blink 1.2s infinite;
+}
+
+/* WIFI SIGNAL WAVES */
+.wifi-pulse {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border: 1px solid rgba(34, 197, 94, 0.65);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: wifi-wave 3s ease-out infinite;
+}
+
+.pulse-two {
+    animation-delay: 1s;
+}
+
+.pulse-three {
+    animation-delay: 2s;
+}
+
+/* DEVICES - PRESERVE ORIGINAL SIZE AND POSITIONS */
+.network-node {
+    position: absolute;
+    z-index: 6;
+
+    width: 40px;
+    height: 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #ffffff;
+    border: 1px solid #d8e9dc;
+    border-radius: 11px;
+
+    box-shadow: 0 4px 12px rgba(20, 83, 45, 0.08);
+
+    font-size: 17px;
+
+    animation: device-float 3s ease-in-out infinite;
+}
+
+/* ORIGINAL DEVICE POSITIONS */
+.network-node.node-one {
+    top: 8px;
+    left: 15%;
+    right: auto;
+    bottom: auto;
+    animation-delay: 0s;
+}
+
+.network-node.node-two {
+    top: 8px;
+    right: 15%;
+    left: auto;
+    bottom: auto;
+    animation-delay: 0.5s;
+}
+
+.network-node.node-three {
+    bottom: 8px;
+    left: 15%;
+    right: auto;
+    top: auto;
+    animation-delay: 1s;
+}
+
+.network-node.node-four {
+    bottom: 8px;
+    right: 15%;
+    left: auto;
+    top: auto;
+    animation-delay: 1.5s;
+}
+
+.network-node span {
+    display: block;
+    font-size: 17px;
+    animation: device-icon-pulse 2s ease-in-out infinite;
+}
+
+/* CONNECTION LINES - ORIGINAL ANGLES */
+.network-line {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 1;
+
+    width: 100px;
+    height: 1px;
+
+    border: 0;
+    overflow: hidden;
+
+    background: rgba(34, 197, 94, 0.18);
+    transform-origin: left center;
+}
+
+.line-one {
+    transform: rotate(-145deg);
+}
+
+.line-two {
+    transform: rotate(-35deg);
+}
+
+.line-three {
+    transform: rotate(145deg);
+}
+
+.line-four {
+    transform: rotate(35deg);
+}
+
+/* ANIMATED DATA FLOW */
+.network-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        #22c55e,
+        #86efac,
+        transparent
+    );
+
+    animation: network-data-flow 2s linear infinite;
+}
+
+.line-two::after {
+    animation-delay: 0.5s;
+}
+
+.line-three::after {
+    animation-delay: 1s;
+}
+
+.line-four::after {
+    animation-delay: 1.5s;
+}
+
+/* ANIMATIONS */
+@keyframes wifi-center-glow {
+    0%, 100% {
+        box-shadow:
+            0 0 0 1px #b8e4c5,
+            0 0 15px rgba(34, 197, 94, 0.15);
+    }
+
+    50% {
+        box-shadow:
+            0 0 0 2px #86efac,
+            0 0 28px rgba(34, 197, 94, 0.35);
+    }
+}
+
+@keyframes wifi-signal {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.12);
+        opacity: 0.7;
+    }
+}
+
+@keyframes wifi-wave {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(2.1);
+        opacity: 0;
+    }
+}
+
+@keyframes device-float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-7px);
+    }
+}
+
+@keyframes device-icon-pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.12);
+    }
+}
+
+@keyframes online-blink {
+    0%, 100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.35;
+    }
+}
+
+@keyframes network-data-flow {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* MOBILE - KEEP SAME RELATIVE POSITIONS */
+@media (max-width: 480px) {
+    .network-illustration {
+        height: 165px;
+    }
+
+    .network-center {
+        width: 95px;
+        height: 95px;
+    }
+
+    .network-node {
+        width: 35px;
+        height: 35px;
+    }
+
+    .network-line {
+        width: 75px;
+    }
+}
+
+/* ACCESSIBILITY */
+@media (prefers-reduced-motion: reduce) {
+    .network-center,
+    .network-node,
+    .network-node span,
+    .wifi-symbol,
+    .wifi-pulse,
+    .wifi-online-dot,
+    .network-line::after {
+        animation: none !important;
+    }
+}

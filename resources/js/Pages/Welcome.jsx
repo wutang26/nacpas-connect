@@ -214,34 +214,48 @@ export default function Welcome({ canLogin, canRegister }) {
                                             <span>System overview</span>
                                         </div>
 
-                                        <div className="network-illustration">
-                                            <div className="network-center">
-                                                <span>⌁</span>
-                                                <strong>WiFi</strong>
-                                                <small>Connected</small>
-                                            </div>
+                                        
+<div className="network-illustration">
+    {/* CONNECTION LINES */}
+    <div className="network-line line-one"></div>
+    <div className="network-line line-two"></div>
+    <div className="network-line line-three"></div>
+    <div className="network-line line-four"></div>
 
-                                            <div className="network-node node-one">
-                                                <span>📱</span>
-                                            </div>
+    {/* CENTRAL WIFI */}
+    <div className="network-center">
+        <div className="wifi-pulse pulse-one"></div>
+        <div className="wifi-pulse pulse-two"></div>
+        <div className="wifi-pulse pulse-three"></div>
 
-                                            <div className="network-node node-two">
-                                                <span>💻</span>
-                                            </div>
+        <div className="wifi-center-content">
+            <span className="wifi-symbol">⌁</span>
+            <strong>WiFi</strong>
+            <small>
+                <span className="wifi-online-dot"></span>
+                Connected
+            </small>
+        </div>
+    </div>
 
-                                            <div className="network-node node-three">
-                                                <span>📡</span>
-                                            </div>
+    {/* CONNECTED DEVICES */}
+    <div className="network-node node-one">
+        <span>📱</span>
+    </div>
 
-                                            <div className="network-node node-four">
-                                                <span>📲</span>
-                                            </div>
+    <div className="network-node node-two">
+        <span>💻</span>
+    </div>
 
-                                            <div className="network-line line-one"></div>
-                                            <div className="network-line line-two"></div>
-                                            <div className="network-line line-three"></div>
-                                            <div className="network-line line-four"></div>
-                                        </div>
+    <div className="network-node node-three">
+        <span>📡</span>
+    </div>
+
+    <div className="network-node node-four">
+        <span>📲</span>
+    </div>
+</div>
+
                                     </div>
 
                                     <div className="preview-footer">
