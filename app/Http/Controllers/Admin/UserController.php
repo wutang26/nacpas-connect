@@ -252,4 +252,31 @@ class UserController extends Controller
             ->route('users.show', $user)
             ->with('success', 'Role na direct permissions zimehifadhiwa kikamilifu.');
     }
+
+    public function verifyEmail(Request $request, User $user): RedirectResponse
+{
+    // Super Admin pekee ndiye anayeruhusiwa
+    abort_unless(
+        $request->user()->hasRole('super_admin'),
+        403,
+        'Huna ruhusa ya kuthibitisha email za watumiaji.'
+    );
+
+    // Usibadilishe akaunti ya Super Admin mwingine
+    abort_if(
+        $user->hasRole('super_admin'),
+        403,
+        'Akaunti ya Super Admin haiwezi kuthibitishwa kupitia ukurasa huu.'
+    );
+
+    if (!$user->hasVerifiedEmail()) {
+        $user->forceFill([
+            'email_verified_at' => now(),
+        ])->save();
+    }
+
+    return redirect()
+        ->route('users.show', $user)
+        ->with('success', 'Email ya mtumiaji imethibitishwa kikamilifu.');
+}
 }

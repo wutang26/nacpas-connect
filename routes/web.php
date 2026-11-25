@@ -92,6 +92,9 @@ Route::middleware(['auth', 'verified'])
         Route::get('/{user}', [UserController::class, 'show'])
             ->name('show');
 
+        Route::post('/{user}/verify-email', [UserController::class, 'verifyEmail'])
+    ->name('verify-email');
+
         Route::put('/{user}', [UserController::class, 'update'])
             ->middleware('permission:platform.users.manage')
             ->name('update');

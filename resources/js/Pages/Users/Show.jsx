@@ -1,4 +1,4 @@
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import './Users.css';
 
@@ -97,6 +97,8 @@ export default function Show({
         direct_permissions: initialDirectPermissions,
     });
 
+    const verifyForm = useForm({});
+
     const togglePermission = (permissionName) => {
         const current = form.data.direct_permissions;
 
@@ -190,8 +192,34 @@ export default function Show({
                                     : 'Email not verified'}
                             </span>
                         </div>
+
+                                        {isSuperAdmin && !user.email_verified_at && (
+                    <div style={{ marginTop: '16px' }}>
+                        <button
+                            type="button"
+                            className="users-primary-button"
+                            disabled={verifyForm.processing}
+                            onClick={() => {
+                                if (window.confirm(
+                                    `Unathibitisha kuwa ${user.email} ni email halali ya mtumiaji huyu?`
+                                )) {
+                                    verifyForm.post(`/users/${user.id}/verify-email`, {
+                                        preserveScroll: true,
+                                    });
+                                }
+                            }}
+                        >
+                            {verifyForm.processing
+                                ? 'Verifying Email...'
+                                : '✓ Verify Email'}
+                        </button>
+                    </div>
+                )}
                     </div>
                 </div>
+
+
+
 
                 {!canManageUsers && (
                     <div className="users-alert error">
