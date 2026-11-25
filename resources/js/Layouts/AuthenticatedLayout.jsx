@@ -3,8 +3,17 @@ import { useState } from 'react';
 import './AuthenticatedLayout.css';
 
 export default function AuthenticatedLayout({ children }) {
-    const { auth, url = '' } = usePage().props;
+    const {
+        auth,
+        url = '',
+        platformSettings = {},
+    } = usePage().props;
+
     const user = auth?.user;
+
+    const platformName = platformSettings.platform_name || 'NACPASI';
+    const platformTagline =
+        platformSettings.platform_tagline || 'Connect. Manage. Grow.';
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -189,7 +198,7 @@ export default function AuthenticatedLayout({ children }) {
 
                     {!sidebarCollapsed && (
                         <div className="brand-info">
-                            <h2>NACPASI</h2>
+                            <h2>{platformName}</h2>
                             <span>CONNECT</span>
                         </div>
                     )}
@@ -405,7 +414,7 @@ export default function AuthenticatedLayout({ children }) {
                             <strong>Platform Administration</strong>
 
                             <span>
-                                Manage your NACPASI Connect platform
+                                Manage your {platformName} platform
                             </span>
                         </div>
                     </div>
@@ -438,7 +447,7 @@ export default function AuthenticatedLayout({ children }) {
 
                 <footer className="nac-footer">
                     <span>
-                        © {new Date().getFullYear()} NACPASI Connect
+                        © {new Date().getFullYear()} {platformName}
                     </span>
 
                     <span>Powered by NAC Technologies</span>

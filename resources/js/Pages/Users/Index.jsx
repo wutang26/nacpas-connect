@@ -9,7 +9,10 @@ export default function Index({
     roles = [],
     canManageUsers = false,
 }) {
-    const { flash = {} } = usePage().props;
+    const {
+        flash = {},
+        platformSettings = {},
+    } = usePage().props;
 
     const [search, setSearch] = useState(filters.search || '');
     const [selectedRole, setSelectedRole] = useState(filters.role || '');
@@ -42,16 +45,72 @@ export default function Index({
         });
     };
 
-    const formatDate = (date) => {
+    // const formatDate = (date) => {
+    //     if (!date) return 'N/A';
+
+    //     const parsedDate = new Date(date);
+
+    //     if (Number.isNaN(parsedDate.getTime())) return 'N/A';
+
+    //     const parts = new Intl.DateTimeFormat('en-GB', {
+    //         timeZone: platformSettings.timezone || 'Africa/Dar_es_Salaam',
+    //         day: '2-digit',
+    //         month: '2-digit',
+    //         year: 'numeric',
+    //     }).formatToParts(parsedDate);
+
+    //     const values = Object.fromEntries(
+    //         parts.map((part) => [part.type, part.value])
+    //     );
+
+    //     const dateFormat = platformSettings.date_format || 'd/m/Y';
+
+    //     return dateFormat.replace(/[d m Y]/g, (token) => {
+    //         const replacements = {
+    //             d: values.day,
+    //             m: values.month,
+    //             Y: values.year,
+    //             ' ': ' ',
+    //         };
+
+    //         return replacements[token] ?? token;
+    //     });
+    // };
+        const formatDate = (date) => {
         if (!date) return 'N/A';
 
-        return new Date(date).toLocaleDateString('en-GB', {
+        const parsedDate = new Date(date);
+
+        if (Number.isNaN(parsedDate.getTime())) {
+            return 'N/A';
+        }
+
+        const timezone = platformSettings.timezone || 'Africa/Dar_es_Salaam';
+
+        const dateFormat = platformSettings.date_format || 'd/m/Y';
+
+        const parts = new Intl.DateTimeFormat('en-GB', {
+            timeZone: timezone,
             day: '2-digit',
-            month: 'short',
+            month: '2-digit',
             year: 'numeric',
+        }).formatToParts(parsedDate);
+
+        const values = Object.fromEntries(
+            parts.map((part) => [part.type, part.value])
+        );
+
+        const replacements = {
+            d: values.day,
+            m: values.month,
+            Y: values.year,
+        };
+
+        return dateFormat.replace(/d|m|Y/g, (token) => {
+            return replacements[token] ?? token;
         });
     };
-
+    
     return (
         <AuthenticatedLayout>
             <Head title="User Management" />

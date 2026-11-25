@@ -86,7 +86,10 @@ export default function Show({
     canManageUsers = false,
     isSuperAdmin = false,
 }) {
-    const { flash = {} } = usePage().props;
+    const {
+        flash = {},
+        platformSettings = {},
+    } = usePage().props;
 
     const initialDirectPermissions = directPermissions.map(
         (permission) => permission.name
@@ -117,18 +120,83 @@ export default function Show({
         });
     };
 
-    const formatDate = (date) => {
+    // const formatDate = (date) => {
+    //     if (!date) return 'N/A';
+
+    //     const parsedDate = new Date(date);
+
+    //     if (Number.isNaN(parsedDate.getTime())) return 'N/A';
+
+    //     const parts = new Intl.DateTimeFormat('en-GB', {
+    //         timeZone: platformSettings.timezone || 'Africa/Dar_es_Salaam',
+    //         day: '2-digit',
+    //         month: '2-digit',
+    //         year: 'numeric',
+    //         hour: '2-digit',
+    //         minute: '2-digit',
+    //         hourCycle: 'h23',
+    //     }).formatToParts(parsedDate);
+
+    //     const values = Object.fromEntries(
+    //         parts.map((part) => [part.type, part.value])
+    //     );
+
+    //     const dateFormat = platformSettings.date_format || 'd/m/Y';
+
+    //     const formattedDate = dateFormat.replace(/[d m Y]/g, (token) => {
+    //         const replacements = {
+    //             d: values.day,
+    //             m: values.month,
+    //             Y: values.year,
+    //             ' ': ' ',
+    //         };
+
+    //         return replacements[token] ?? token;
+    //     });
+
+    //     return `${formattedDate} ${values.hour}:${values.minute}`;
+    // };
+
+        const formatDate = (date) => {
         if (!date) return 'N/A';
 
-        return new Date(date).toLocaleString('en-GB', {
+        const parsedDate = new Date(date);
+
+        if (Number.isNaN(parsedDate.getTime())) {
+            return 'N/A';
+        }
+
+        const timezone = platformSettings.timezone || 'Africa/Dar_es_Salaam';
+
+        const dateFormat = platformSettings.date_format || 'd/m/Y';
+
+        const parts = new Intl.DateTimeFormat('en-GB', {
+            timeZone: timezone,
             day: '2-digit',
-            month: 'short',
+            month: '2-digit',
             year: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
-        });
-    };
+            hourCycle: 'h23',
+        }).formatToParts(parsedDate);
 
+        const values = Object.fromEntries(
+            parts.map((part) => [part.type, part.value])
+        );
+
+        const replacements = {
+            d: values.day,
+            m: values.month,
+            Y: values.year,
+        };
+
+        const formattedDate = dateFormat.replace(/d|m|Y/g, (token) => {
+            return replacements[token] ?? token;
+        });
+
+        return `${formattedDate} ${values.hour}:${values.minute}`;
+    };
+    
     const selectedRoleDetails = availableRoles.find(
         (role) => role.name === form.data.role
     );

@@ -1,16 +1,41 @@
-
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import './PaymentPending.css';
 
-const formatMoney = (amount) =>
-    new Intl.NumberFormat('en-TZ', {
+const formatMoney = (amount, locale = 'en-TZ') =>
+    new Intl.NumberFormat(locale, {
         maximumFractionDigits: 0,
-    }).format(Number(amount));
+    }).format(Number(amount || 0));
+
+const getNumberLocale = (country) => {
+    const locales = {
+        Tanzania: 'en-TZ',
+        Kenya: 'en-KE',
+        Uganda: 'en-UG',
+        Rwanda: 'en-RW',
+        Burundi: 'fr-BI',
+        'United States': 'en-US',
+    };
+
+    return locales[country] || 'en-TZ';
+};
 
 export default function PaymentPending({ site, payment }) {
+    const { platformSettings = {} } = usePage().props;
+
+    const platformName = platformSettings.platform_name || 'NACPASI';
+
+    const platformCurrency = String(
+        platformSettings.currency || 'TZS'
+    ).toUpperCase();
+
+    const paymentCurrency =
+        payment.currency || platformCurrency;
+
+    const numberLocale = getNumberLocale(platformSettings.country);
+
     return (
         <>
-            <Head title={`Checkout - ${site.name}`} />
+            <Head title={`${platformName} - Checkout - ${site.name}`} />
 
             <div className="payment-status-page">
                 <div className="payment-status-card">
@@ -52,7 +77,8 @@ export default function PaymentPending({ site, payment }) {
                         <div>
                             <span>Kiasi</span>
                             <strong>
-                                {payment.currency} {formatMoney(payment.amount)}
+                                {paymentCurrency}{' '}
+                                {formatMoney(payment.amount, numberLocale)}
                             </strong>
                         </div>
 

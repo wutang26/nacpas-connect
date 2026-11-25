@@ -1,9 +1,51 @@
 
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import './Dashboard.css';
 
+function formatPlatformDate(date, format, timezone) {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        timeZone: timezone,
+    }).formatToParts(date);
+
+    const values = {};
+
+    parts.forEach((part) => {
+        if (part.type !== 'literal') {
+            values[part.type] = part.value;
+        }
+    });
+
+    switch (format) {
+        case 'Y-m-d':
+            return `${values.year}-${values.month}-${values.day}`;
+
+        case 'm/d/Y':
+            return `${values.month}/${values.day}/${values.year}`;
+
+        case 'd/m/Y':
+        default:
+            return `${values.day}/${values.month}/${values.year}`;
+    }
+}
+
 export default function Dashboard() {
+    const { platformSettings = {} } = usePage().props;
+
+    const platformName = platformSettings.platform_name || 'NACPASI';
+    const currency = platformSettings.currency || 'TZS';
+    const timezone = platformSettings.timezone || 'Africa/Dar_es_Salaam';
+    const dateFormat = platformSettings.date_format || 'd/m/Y';
+
+    const today = formatPlatformDate(
+        new Date(),
+        dateFormat,
+        timezone
+    );
+
     const statistics = [
         {
             title: 'Organizations',
@@ -25,7 +67,7 @@ export default function Dashboard() {
         },
         {
             title: 'SaaS Revenue',
-            value: 'TZS 0',
+            value: `${currency} 0`,
             description: 'Total collected revenue',
             icon: '💰',
         },
@@ -40,16 +82,12 @@ export default function Dashboard() {
                     <div>
                         <h1>Dashboard Overview</h1>
                         <p>
-                            Welcome to NACPAS Connect platform administration.
+                            Welcome to {platformName} platform administration.
                         </p>
                     </div>
 
                     <div className="dashboard-date">
-                        {new Date().toLocaleDateString('en-TZ', {
-                            day: '2-digit',
-                            month: 'long',
-                            year: 'numeric',
-                        })}
+                        {today}
                     </div>
                 </div>
 
@@ -86,7 +124,7 @@ export default function Dashboard() {
                         <div className="overview-content">
                             <div className="overview-item">
                                 <span>Platform Name</span>
-                                <strong>NACPAS Connect</strong>
+                                <strong>{platformName}</strong>
                             </div>
 
                             <div className="overview-item">
@@ -103,7 +141,17 @@ export default function Dashboard() {
 
                             <div className="overview-item">
                                 <span>Default Currency</span>
-                                <strong>TZS - Tanzanian Shilling</strong>
+                                <strong>{currency}</strong>
+                            </div>
+
+                            <div className="overview-item">
+                                <span>Timezone</span>
+                                <strong>{timezone}</strong>
+                            </div>
+
+                            <div className="overview-item">
+                                <span>Date Format</span>
+                                <strong>{dateFormat}</strong>
                             </div>
                         </div>
                     </section>

@@ -1,12 +1,25 @@
 
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import './Index.css';
 
-const formatMoney = (amount) =>
-    new Intl.NumberFormat('en-TZ', {
+const formatMoney = (amount, locale = 'en-TZ') =>
+    new Intl.NumberFormat(locale, {
         maximumFractionDigits: 0,
     }).format(Number(amount || 0));
+
+const getNumberLocale = (country) => {
+    const locales = {
+        Tanzania: 'en-TZ',
+        Kenya: 'en-KE',
+        Uganda: 'en-UG',
+        Rwanda: 'en-RW',
+        Burundi: 'fr-BI',
+        'United States': 'en-US',
+    };
+
+    return locales[country] || 'en-TZ';
+};
 
 const formatDuration = (minutes) => {
     const duration = Number(minutes || 0);
@@ -46,6 +59,18 @@ const isValidTanzanianPhone = (value) => {
 };
 
 export default function Index({ site, packages = [] }) {
+    const { platformSettings = {} } = usePage().props;
+
+    const platformName = platformSettings.platform_name || 'NACPASI';
+    const platformTagline =
+        platformSettings.platform_tagline || 'SMART WIFI ACCESS';
+
+    const platformCurrency = String(
+        platformSettings.currency || 'TZS'
+    ).toUpperCase();
+
+    const numberLocale = getNumberLocale(platformSettings.country);
+
     const [selectedPackage, setSelectedPackage] = useState(null);
 
     const {
@@ -94,7 +119,7 @@ export default function Index({ site, packages = [] }) {
 
     return (
         <>
-            <Head title={`WiFi Access - ${site.name}`} />
+            <Head title={`${platformName} - WiFi Access - ${site.name}`} />
 
             <div className="customer-portal">
 
@@ -104,8 +129,8 @@ export default function Index({ site, packages = [] }) {
                         <div className="portal-logo-icon">N</div>
 
                         <div className="portal-logo-text">
-                            <strong>NACPASI</strong>
-                            <span>SMART WIFI ACCESS</span>
+                            <strong>{platformName}</strong>
+                            <span>{platformTagline}</span>
                         </div>
                     </a>
 
@@ -233,11 +258,11 @@ export default function Index({ site, packages = [] }) {
 
                                             <div className="package-price">
                                                 <strong>
-                                                    {formatMoney(item.price)}
+                                                    {formatMoney(item.price, numberLocale)}
                                                 </strong>
 
                                                 <span>
-                                                    {item.currency || 'TZS'}
+                                                    {item.currency || platformCurrency}
                                                 </span>
                                             </div>
 
@@ -362,8 +387,8 @@ export default function Index({ site, packages = [] }) {
 
                                     <strong>
                                         {selected
-                                            ? `${selected.currency || 'TZS'} ${formatMoney(selected.price)}`
-                                            : 'TZS 0'}
+                                            ? `${selected.currency || platformCurrency} ${formatMoney(selected.price, numberLocale)}`
+                                            : `${platformCurrency} 0`}
                                     </strong>
                                 </div>
 
@@ -405,7 +430,7 @@ export default function Index({ site, packages = [] }) {
                     </span>
 
                     <span>
-                        © {new Date().getFullYear()} NACPASI
+                        © {new Date().getFullYear()} {platformName}
                     </span>
                 </footer>
 

@@ -1,5 +1,5 @@
 
-import { Link, useForm } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 
 export default function PackageForm({
     sites = [],
@@ -7,6 +7,12 @@ export default function PackageForm({
     selectedSiteId = null,
 }) {
     const isEditing = Boolean(existingPackage);
+
+    const { platformSettings = {} } = usePage().props;
+
+    const currency = isEditing
+        ? (existingPackage?.currency || platformSettings.currency || 'TZS')
+        : (platformSettings.currency || 'TZS');
 
     const { data, setData, post, put, processing, errors } = useForm({
         site_id: existingPackage?.site_id ?? selectedSiteId ?? sites[0]?.id ?? '',
@@ -92,9 +98,12 @@ export default function PackageForm({
                     </div>
 
                     <div className="package-field">
-                        <label>Price (TZS) <span>*</span></label>
+                        <label>
+                            Price ({currency}) <span>*</span>
+                        </label>
+
                         <div className="package-input-prefix">
-                            <span>TZS</span>
+                            <span>{currency}</span>
                             <input
                                 type="number"
                                 min="0"
@@ -105,9 +114,16 @@ export default function PackageForm({
                                 required
                             />
                         </div>
+
                         {errors.price && (
                             <small className="package-error">{errors.price}</small>
                         )}
+
+                        <small className="package-hint">
+                            {isEditing
+                                ? `This package retains its saved currency (${currency}).`
+                                : `New packages will use the platform currency (${currency}).`}
+                        </small>
                     </div>
 
                     <div className="package-field package-field-full">
@@ -149,7 +165,9 @@ export default function PackageForm({
                             60 = 1 hour, 1440 = 1 day, 43200 = 30 days.
                         </small>
                         {errors.duration_minutes && (
-                            <small className="package-error">{errors.duration_minutes}</small>
+                            <small className="package-error">
+                                {errors.duration_minutes}
+                            </small>
                         )}
                     </div>
 
@@ -181,7 +199,9 @@ export default function PackageForm({
                             required
                         />
                         {errors.download_speed_kbps && (
-                            <small className="package-error">{errors.download_speed_kbps}</small>
+                            <small className="package-error">
+                                {errors.download_speed_kbps}
+                            </small>
                         )}
                     </div>
 
@@ -195,7 +215,9 @@ export default function PackageForm({
                             required
                         />
                         {errors.upload_speed_kbps && (
-                            <small className="package-error">{errors.upload_speed_kbps}</small>
+                            <small className="package-error">
+                                {errors.upload_speed_kbps}
+                            </small>
                         )}
                     </div>
                 </div>
@@ -225,7 +247,9 @@ export default function PackageForm({
                             Leave blank to provide unlimited data.
                         </small>
                         {errors.data_limit_mb && (
-                            <small className="package-error">{errors.data_limit_mb}</small>
+                            <small className="package-error">
+                                {errors.data_limit_mb}
+                            </small>
                         )}
                     </div>
 

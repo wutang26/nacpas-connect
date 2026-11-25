@@ -3,17 +3,49 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import './Packages.css';
 
-function formatPrice(price) {
-    return Number(price).toLocaleString('en-TZ', {
+function formatNumber(value, locale = 'en-TZ', options = {}) {
+    const number = Number(value ?? 0);
+
+    if (!Number.isFinite(number)) {
+        return '0';
+    }
+
+    return new Intl.NumberFormat(locale, {
         minimumFractionDigits: 0,
         maximumFractionDigits: 2,
-    });
+        ...options,
+    }).format(number);
+}
+
+function getNumberLocale(country) {
+    const locales = {
+        Tanzania: 'en-TZ',
+        Kenya: 'en-KE',
+        Uganda: 'en-UG',
+        Rwanda: 'en-RW',
+        Burundi: 'fr-BI',
+        'United States': 'en-US',
+    };
+
+    return locales[country] || 'en-TZ';
+}
+
+function formatMoney(price, currency, locale = 'en-TZ') {
+    const amount = formatNumber(price, locale);
+
+    return `${currency} ${amount}`;
 }
 
 function formatDuration(minutes) {
     const value = Number(minutes);
 
-    if (value < 60) return `${value} min`;
+    if (!Number.isFinite(value) || value <= 0) {
+        return 'Not set';
+    }
+
+    if (value < 60) {
+        return `${value} min`;
+    }
 
     if (value % 43200 === 0) {
         const months = value / 43200;
@@ -38,6 +70,22 @@ function formatDuration(minutes) {
     return `${value} min`;
 }
 
+function formatSpeed(speed, locale) {
+    return `${formatNumber(speed, locale)} Kbps`;
+}
+
+function formatDataLimit(bytes, locale) {
+    const value = Number(bytes);
+
+    if (!Number.isFinite(value) || value <= 0) {
+        return 'Unlimited';
+    }
+
+    const megabytes = value / (1024 * 1024);
+
+    return `${formatNumber(megabytes, locale)} MB`;
+}
+
 function DeletePackageButton({ packageItem }) {
     const { delete: destroy, processing } = useForm();
 
@@ -53,14 +101,18 @@ function DeletePackageButton({ packageItem }) {
         });
     };
 
+    const hasSubscriptions = Number(
+        packageItem.subscriptions_count || 0
+    ) > 0;
+
     return (
         <button
             type="button"
             className="package-action-button delete"
             onClick={handleDelete}
-            disabled={processing || packageItem.subscriptions_count > 0}
+            disabled={processing || hasSubscriptions}
             title={
-                packageItem.subscriptions_count > 0
+                hasSubscriptions
                     ? 'This package has subscription history and cannot be deleted.'
                     : 'Delete package'
             }
@@ -75,9 +127,24 @@ export default function Index({
     selectedSiteId = null,
     packages = [],
 }) {
-    const { flash = {}, errors = {} } = usePage().props;
+    const {
+        flash = {},
+        errors = {},
+        platformSettings = {},
+    } = usePage().props;
 
-    const activeCount = packages.filter((item) => item.is_active).length;
+    const platformCurrency = String(
+        platformSettings.currency || 'TZS'
+    ).toUpperCase();
+
+    const numberLocale = getNumberLocale(
+        platformSettings.country
+    );
+
+    const activeCount = packages.filter(
+        (item) => item.is_active
+    ).length;
+
     const inactiveCount = packages.length - activeCount;
 
     const handleSiteChange = (event) => {
@@ -97,9 +164,11 @@ export default function Index({
             <Head title="WiFi Packages" />
 
             <div className="packages-page">
+
                 <div className="packages-heading">
                     <div>
                         <h1>WiFi Packages</h1>
+
                         <p>
                             Create and manage internet packages for your hotspot sites.
                         </p>
@@ -108,7 +177,6 @@ export default function Index({
                     <Link
                         href={`/packages/create${selectedSiteId ? `?site_id=${selectedSiteId}` : ''}`}
                         className="package-primary-button"
-                        as="div"
                     >
                         <span>＋</span> Create Package
                     </Link>
@@ -129,8 +197,11 @@ export default function Index({
                 )}
 
                 <div className="package-toolbar">
+
                     <div className="package-site-filter">
-                        <label htmlFor="package-site">Select Site</label>
+                        <label htmlFor="package-site">
+                            Select Site
+                        </label>
 
                         <select
                             id="package-site"
@@ -139,7 +210,10 @@ export default function Index({
                             disabled={sites.length === 0}
                         >
                             {sites.map((site) => (
-                                <option key={site.id} value={site.id}>
+                                <option
+                                    key={site.id}
+                                    value={site.id}
+                                >
                                     {site.name}
                                     {site.code ? ` (${site.code})` : ''}
                                 </option>
@@ -148,13 +222,19 @@ export default function Index({
                     </div>
 
                     <div className="package-currency-label">
-                        Currency: <strong>TZS</strong>
+                        Default Currency:{' '}
+                        <strong>{platformCurrency}</strong>
                     </div>
+
                 </div>
 
                 <div className="package-statistics">
+
                     <div className="package-stat-card">
-                        <div className="package-stat-icon">📦</div>
+                        <div className="package-stat-icon">
+                            📦
+                        </div>
+
                         <div>
                             <span>Total Packages</span>
                             <strong>{packages.length}</strong>
@@ -162,7 +242,10 @@ export default function Index({
                     </div>
 
                     <div className="package-stat-card">
-                        <div className="package-stat-icon active">✓</div>
+                        <div className="package-stat-icon active">
+                            ✓
+                        </div>
+
                         <div>
                             <span>Active Packages</span>
                             <strong>{activeCount}</strong>
@@ -170,19 +253,27 @@ export default function Index({
                     </div>
 
                     <div className="package-stat-card">
-                        <div className="package-stat-icon inactive">⏸</div>
+                        <div className="package-stat-icon inactive">
+                            ⏸
+                        </div>
+
                         <div>
                             <span>Inactive Packages</span>
                             <strong>{inactiveCount}</strong>
                         </div>
                     </div>
+
                 </div>
 
                 <div className="package-table-panel">
+
                     <div className="package-table-heading">
                         <div>
                             <h3>Package List</h3>
-                            <p>Internet packages registered under the selected site.</p>
+
+                            <p>
+                                Internet packages registered under the selected site.
+                            </p>
                         </div>
 
                         <span className="package-count">
@@ -191,16 +282,28 @@ export default function Index({
                     </div>
 
                     {sites.length === 0 ? (
+
                         <div className="packages-empty">
                             <span>📍</span>
+
                             <h3>No manageable sites found</h3>
-                            <p>You do not currently have access to manage any hotspot site.</p>
+
+                            <p>
+                                You do not currently have access to manage any hotspot site.
+                            </p>
                         </div>
+
                     ) : packages.length === 0 ? (
+
                         <div className="packages-empty">
                             <span>📦</span>
+
                             <h3>No packages registered</h3>
-                            <p>Create your first WiFi package for this site.</p>
+
+                            <p>
+                                Create your first WiFi package for this site.
+                            </p>
+
                             <Link
                                 href={`/packages/create?site_id=${selectedSiteId}`}
                                 className="package-primary-button"
@@ -208,9 +311,13 @@ export default function Index({
                                 Create First Package
                             </Link>
                         </div>
+
                     ) : (
+
                         <div className="package-table-scroll">
+
                             <table className="package-table">
+
                                 <thead>
                                     <tr>
                                         <th>Package</th>
@@ -226,73 +333,112 @@ export default function Index({
                                 </thead>
 
                                 <tbody>
-                                    {packages.map((item) => (
-                                        <tr key={item.id}>
-                                            <td>
-                                                <div className="package-name-cell">
-                                                    <strong>{item.name}</strong>
-                                                    <small>
-                                                        {item.description || 'No description'}
-                                                    </small>
-                                                </div>
-                                            </td>
+                                    {packages.map((item) => {
+                                        const packageCurrency = String(
+                                            item.currency || platformCurrency
+                                        ).toUpperCase();
 
-                                            <td className="package-price">
-                                                TZS {formatPrice(item.price)}
-                                            </td>
+                                        return (
+                                            <tr key={item.id}>
 
-                                            <td>{formatDuration(item.duration_minutes)}</td>
+                                                <td>
+                                                    <div className="package-name-cell">
+                                                        <strong>
+                                                            {item.name}
+                                                        </strong>
 
-                                            <td>
-                                                {Number(item.download_speed_kbps).toLocaleString()} Kbps
-                                            </td>
+                                                        <small>
+                                                            {item.description || 'No description'}
+                                                        </small>
+                                                    </div>
+                                                </td>
 
-                                            <td>
-                                                {Number(item.upload_speed_kbps).toLocaleString()} Kbps
-                                            </td>
+                                                <td className="package-price">
+                                                    {formatMoney(
+                                                        item.price,
+                                                        packageCurrency,
+                                                        numberLocale
+                                                    )}
+                                                </td>
 
-                                            <td>
-                                                {item.data_limit_bytes
-                                                    ? `${(
-                                                        Number(item.data_limit_bytes) /
-                                                        (1024 * 1024)
-                                                    ).toLocaleString()} MB`
-                                                    : 'Unlimited'}
-                                            </td>
+                                                <td>
+                                                    {formatDuration(
+                                                        item.duration_minutes
+                                                    )}
+                                                </td>
 
-                                            <td>{item.device_limit}</td>
+                                                <td>
+                                                    {formatSpeed(
+                                                        item.download_speed_kbps,
+                                                        numberLocale
+                                                    )}
+                                                </td>
 
-                                            <td>
-                                                <span
-                                                    className={`package-status ${
-                                                        item.is_active ? 'enabled' : 'disabled'
-                                                    }`}
-                                                >
-                                                    {item.is_active ? 'Active' : 'Inactive'}
-                                                </span>
-                                            </td>
+                                                <td>
+                                                    {formatSpeed(
+                                                        item.upload_speed_kbps,
+                                                        numberLocale
+                                                    )}
+                                                </td>
 
-                                            <td>
-                                                <div className="package-actions">
-                                                    <Link
-                                                        href={`/packages/${item.id}/edit`}
-                                                        className="package-action-button edit"
+                                                <td>
+                                                    {formatDataLimit(
+                                                        item.data_limit_bytes,
+                                                        numberLocale
+                                                    )}
+                                                </td>
+
+                                                <td>
+                                                    {formatNumber(
+                                                        item.device_limit,
+                                                        numberLocale,
+                                                        { maximumFractionDigits: 0 }
+                                                    )}
+                                                </td>
+
+                                                <td>
+                                                    <span
+                                                        className={`package-status ${
+                                                            item.is_active
+                                                                ? 'enabled'
+                                                                : 'disabled'
+                                                        }`}
                                                     >
-                                                        Edit
-                                                    </Link>
+                                                        {item.is_active
+                                                            ? 'Active'
+                                                            : 'Inactive'}
+                                                    </span>
+                                                </td>
 
-                                                    <DeletePackageButton
-                                                        packageItem={item}
-                                                    />
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                <td>
+                                                    <div className="package-actions">
+
+                                                        <Link
+                                                            href={`/packages/${item.id}/edit`}
+                                                            className="package-action-button edit"
+                                                        >
+                                                            Edit
+                                                        </Link>
+
+                                                        <DeletePackageButton
+                                                            packageItem={item}
+                                                        />
+
+                                                    </div>
+                                                </td>
+
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
+
                             </table>
+
                         </div>
                     )}
+
                 </div>
+
             </div>
         </AuthenticatedLayout>
     );
