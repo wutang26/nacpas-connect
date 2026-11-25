@@ -7,6 +7,7 @@ use App\Http\Controllers\Portal\HotspotController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\WifiNetworkController;
 use App\Http\Controllers\Admin\QrCodeController;
+use App\Http\Controllers\Admin\UserController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -76,17 +77,31 @@ Route::middleware(['auth', 'verified'])
 
 /*
 |--------------------------------------------------------------------------
-| Customer Captive Portal
+| User Management
 |--------------------------------------------------------------------------
 */
 
-// Route::prefix('portal')
-//     ->name('portal.')
-//     ->group(function () {
-//         Route::get('/{site:slug}', [HotspotController::class, 'show'])
-//             ->name('show');
-//     });
+Route::middleware(['auth', 'verified'])
+    ->prefix('users')
+    ->name('users.')
+    ->group(function () {
 
+        Route::get('/', [UserController::class, 'index'])
+            ->name('index');
+
+        Route::get('/{user}', [UserController::class, 'show'])
+            ->name('show');
+
+        Route::put('/{user}', [UserController::class, 'update'])
+            ->middleware('permission:platform.users.manage')
+            ->name('update');
+    });
+    
+/*
+|--------------------------------------------------------------------------
+| Customer Captive Portal
+|--------------------------------------------------------------------------
+*/
 
 
 /*
