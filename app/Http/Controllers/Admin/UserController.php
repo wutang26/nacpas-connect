@@ -72,6 +72,19 @@ class UserController extends Controller
                 'super_admin',
                 'admin',
             ]);
+
+            $actorPermissionNames = $request->user()
+                ->getAllPermissions()
+                ->pluck('name')
+                ->all();
+
+            if (empty($actorPermissionNames)) {
+                $query->whereDoesntHave('permissions');
+            } else {
+                $query->whereDoesntHave('permissions', function ($permissionQuery) use ($actorPermissionNames) {
+                    $permissionQuery->whereNotIn('name', $actorPermissionNames);
+                });
+            }
         }
 
         return $query->get(['id', 'name']);
@@ -254,29 +267,31 @@ class UserController extends Controller
     }
 
     public function verifyEmail(Request $request, User $user): RedirectResponse
-{
-    // Super Admin pekee ndiye anayeruhusiwa
-    abort_unless(
-        $request->user()->hasRole('super_admin'),
-        403,
-        'Huna ruhusa ya kuthibitisha email za watumiaji.'
-    );
+    {
+        $actor = $request->user();
 
-    // Usibadilishe akaunti ya Super Admin mwingine
-    abort_if(
-        $user->hasRole('super_admin'),
-        403,
-        'Akaunti ya Super Admin haiwezi kuthibitishwa kupitia ukurasa huu.'
-    );
+        abort_unless(
+            $actor->hasRole('super_admin')
+            || $actor->can('platform.users.manage'),
+            403,
+            'Huna ruhusa ya kuthibitisha email za watumiaji.'
+        );
 
-    if (!$user->hasVerifiedEmail()) {
-        $user->forceFill([
-            'email_verified_at' => now(),
-        ])->save();
+        if (
+            !$actor->hasRole('super_admin')
+            && $user->hasAnyRole(['super_admin', 'admin'])
+        ) {
+            abort(403, 'Huna ruhusa ya kuthibitisha akaunti hii.');
+        }
+
+        if (!$user->hasVerifiedEmail()) {
+            $user->forceFill([
+                'email_verified_at' => now(),
+            ])->save();
+        }
+
+        return redirect()
+            ->route('users.show', $user)
+            ->with('success', 'Email ya mtumiaji imethibitishwa kikamilifu.');
     }
-
-    return redirect()
-        ->route('users.show', $user)
-        ->with('success', 'Email ya mtumiaji imethibitishwa kikamilifu.');
-}
 }

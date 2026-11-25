@@ -138,17 +138,7 @@ class PermissionSeeder extends Seeder
         */
 
         $admin = Role::findByName('admin', 'web');
-
-        $adminPermissions = collect($permissions)
-            ->reject(fn ($permission) => in_array($permission, [
-                'platform.roles.manage',
-                'platform.permissions.manage',
-                'platform.settings.manage',
-            ], true))
-            ->values()
-            ->all();
-
-        $admin->syncPermissions($adminPermissions);
+        $admin->syncPermissions([]);
 
         /*
         |--------------------------------------------------------------------------

@@ -1,4 +1,3 @@
-
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import './AuthenticatedLayout.css';
@@ -9,10 +8,37 @@ export default function AuthenticatedLayout({ children }) {
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [settingsOpen, setSettingsOpen] = useState(false);
 
     const userRoles = Array.isArray(user?.roles)
         ? user.roles
         : [];
+
+    const userPermissions = Array.isArray(user?.permissions)
+        ? user.permissions
+        : [];
+
+    const isSuperAdmin = userRoles.includes('super_admin');
+
+    const can = (permission) => {
+        return isSuperAdmin || userPermissions.includes(permission);
+    };
+
+    const canViewRoles =
+        can('platform.roles.view') ||
+        can('platform.roles.manage');
+
+    const canViewPermissions =
+        can('platform.permissions.view') ||
+        can('platform.permissions.manage');
+
+    const canViewUsers =
+        can('platform.users.view') ||
+        can('platform.users.manage');
+
+    const canViewSettings =
+        can('platform.settings.view') ||
+        can('platform.settings.manage');
 
     const userRole = userRoles.includes('super_admin')
         ? 'Super Administrator'
@@ -45,11 +71,6 @@ export default function AuthenticatedLayout({ children }) {
                     label: 'Sites',
                     icon: '📍',
                     href: '/sites',
-                },
-                {
-                    label: 'Users',
-                    icon: '👥',
-                    href: '/users',
                 },
                 {
                     label: 'WiFi Packages',
@@ -96,13 +117,42 @@ export default function AuthenticatedLayout({ children }) {
                     icon: '📊',
                     href: '/reports',
                 },
-                {
-                    label: 'Platform Settings',
-                    icon: '⚙',
-                    href: '/settings',
-                },
             ],
         },
+    ];
+
+    const settingsItems = [
+        ...(canViewRoles
+            ? [{
+                label: 'Roles & Permissions',
+                icon: '🛡️',
+                href: '/roles',
+            }]
+            : []),
+
+        ...(canViewPermissions
+            ? [{
+                label: 'Permissions Management',
+                icon: '🔐',
+                href: '/permissions',
+            }]
+            : []),
+
+        ...(canViewUsers
+            ? [{
+                label: 'User Management',
+                icon: '👥',
+                href: '/users',
+            }]
+            : []),
+
+        ...(canViewSettings
+            ? [{
+                label: 'Platform Settings',
+                icon: '⚙️',
+                href: '/settings',
+            }]
+            : []),
     ];
 
     const isActive = (href) => {
@@ -112,8 +162,13 @@ export default function AuthenticatedLayout({ children }) {
             return currentPath === '/dashboard';
         }
 
-        return currentPath === href || currentPath.startsWith(`${href}/`);
+        return currentPath === href ||
+            currentPath.startsWith(`${href}/`);
     };
+
+    const settingsActive = settingsItems.some(
+        (item) => isActive(item.href)
+    );
 
     return (
         <div className="nac-layout">
@@ -190,6 +245,93 @@ export default function AuthenticatedLayout({ children }) {
                             })}
                         </div>
                     ))}
+
+                    {settingsItems.length > 0 && (
+                        <div className="menu-group settings-menu-group">
+                            {!sidebarCollapsed && (
+                                <div className="menu-group-title">
+                                    SETTINGS
+                                </div>
+                            )}
+
+                            <button
+                                type="button"
+                                className={`sidebar-link settings-toggle ${
+                                    settingsActive ? 'active' : ''
+                                }`}
+                                onClick={() => {
+                                    setSettingsOpen((previous) => !previous);
+                                }}
+                                title={
+                                    sidebarCollapsed
+                                        ? 'Settings'
+                                        : undefined
+                                }
+                                aria-expanded={settingsOpen}
+                            >
+                                <span className="menu-icon">⚙</span>
+
+                                {!sidebarCollapsed && (
+                                    <>
+                                        <span>Settings</span>
+
+                                        <span className="settings-chevron">
+                                            {settingsOpen ? '▴' : '▾'}
+                                        </span>
+                                    </>
+                                )}
+                            </button>
+
+                            {settingsOpen && !sidebarCollapsed && (
+                                <div className="settings-submenu">
+                                    {settingsItems.map((item) => {
+                                        const active = isActive(item.href);
+
+                                        return (
+                                            <Link
+                                                key={item.href}
+                                                href={item.href}
+                                                onClick={() => {
+                                                    setSidebarOpen(false);
+                                                }}
+                                                className={`settings-submenu-link ${
+                                                    active ? 'active' : ''
+                                                }`}
+                                                aria-current={
+                                                    active ? 'page' : undefined
+                                                }
+                                            >
+                                                <span>{item.icon}</span>
+                                                <span>{item.label}</span>
+                                            </Link>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {sidebarCollapsed && settingsOpen && (
+                                <div className="settings-collapsed-links">
+                                    {settingsItems.map((item) => (
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            title={item.label}
+                                            onClick={() => {
+                                                setSidebarOpen(false);
+                                            }}
+                                            className={`sidebar-link ${
+                                                isActive(item.href) ? 'active' : ''
+                                            }`}
+                                        >
+                                            <span className="menu-icon">
+                                                {item.icon}
+                                            </span>
+                                        </Link>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="sidebar-bottom">
@@ -261,6 +403,7 @@ export default function AuthenticatedLayout({ children }) {
 
                         <div className="header-title">
                             <strong>Platform Administration</strong>
+
                             <span>
                                 Manage your NACPASI Connect platform
                             </span>

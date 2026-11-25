@@ -1,0 +1,219 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
+
+class PermissionSeeder extends Seeder
+{
+    public function run(): void
+    {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        /*
+        |--------------------------------------------------------------------------
+        | NACPASI Platform Permissions
+        |--------------------------------------------------------------------------
+        */
+
+        $permissions = [
+            // Dashboard
+            'platform.dashboard.view',
+
+            // Organizations
+            'platform.organizations.view',
+            'platform.organizations.create',
+            'platform.organizations.update',
+            'platform.organizations.delete',
+
+            // Sites
+            'platform.sites.view',
+            'platform.sites.create',
+            'platform.sites.update',
+            'platform.sites.delete',
+
+            // Users
+            'platform.users.view',
+            'platform.users.manage',
+
+            // Roles
+            'platform.roles.view',
+            'platform.roles.manage',
+
+            // Permissions
+            'platform.permissions.view',
+            'platform.permissions.manage',
+
+            // Customers
+            'platform.customers.view',
+            'platform.customers.manage',
+
+            // Devices
+            'platform.devices.view',
+            'platform.devices.manage',
+
+            // WiFi Packages
+            'platform.packages.view',
+            'platform.packages.manage',
+
+            // WiFi Access
+            'platform.wifi_access.view',
+            'platform.wifi_access.manage',
+
+            // QR Codes
+            'platform.qr_codes.view',
+            'platform.qr_codes.manage',
+
+            // SaaS Plans
+            'platform.saas_plans.view',
+            'platform.saas_plans.manage',
+
+            // Subscriptions
+            'platform.subscriptions.view',
+            'platform.subscriptions.manage',
+
+            // Payments
+            'platform.payments.view',
+            'platform.payments.manage',
+
+            // Reports
+            'platform.reports.view',
+
+            // Settings
+            'platform.settings.view',
+            'platform.settings.manage',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate([
+                'name' => $permission,
+                'guard_name' => 'web',
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Platform Roles
+        |--------------------------------------------------------------------------
+        */
+
+        $roles = [
+            'super_admin',
+            'admin',
+            'organization_manager',
+            'site_manager',
+            'support_agent',
+            'accountant',
+            'user',
+        ];
+
+        foreach ($roles as $roleName) {
+            Role::firstOrCreate([
+                'name' => $roleName,
+                'guard_name' => 'web',
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Super Admin
+        |--------------------------------------------------------------------------
+        */
+
+        $superAdmin = Role::findByName('super_admin', 'web');
+
+        $superAdmin->syncPermissions(
+            Permission::where('guard_name', 'web')->get()
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Admin
+        |--------------------------------------------------------------------------
+        | Admin receives platform management permissions, but role and
+        | permission administration remain restricted by default.
+        */
+
+        $admin = Role::findByName('admin', 'web');
+        
+        $admin->syncPermissions([]);
+
+        $adminPermissions = collect($permissions)
+            ->reject(fn ($permission) => in_array($permission, [
+                'platform.roles.manage',
+                'platform.permissions.manage',
+                'platform.settings.manage',
+            ], true))
+            ->values()
+            ->all();
+
+        $admin->syncPermissions($adminPermissions);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Support Agent
+        |--------------------------------------------------------------------------
+        */
+
+        Role::findByName('support_agent', 'web')->syncPermissions([
+            'platform.dashboard.view',
+            'platform.customers.view',
+            'platform.devices.view',
+            'platform.wifi_access.view',
+            'platform.qr_codes.view',
+            'platform.reports.view',
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Accountant
+        |--------------------------------------------------------------------------
+        */
+
+        Role::findByName('accountant', 'web')->syncPermissions([
+            'platform.dashboard.view',
+            'platform.saas_plans.view',
+            'platform.subscriptions.view',
+            'platform.payments.view',
+            'platform.payments.manage',
+            'platform.reports.view',
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Default Registered User
+        |--------------------------------------------------------------------------
+        */
+
+        Role::findByName('user', 'web')->syncPermissions([
+            'platform.dashboard.view',
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Organization and Site Managers
+        |--------------------------------------------------------------------------
+        | Their permissions will be assigned after organization/site-level
+        | data access restrictions are implemented.
+        */
+
+        Role::findByName('organization_manager', 'web')
+            ->syncPermissions([
+                'platform.dashboard.view',
+            ]);
+
+        Role::findByName('site_manager', 'web')
+            ->syncPermissions([
+                'platform.dashboard.view',
+            ]);
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->command->info(
+            'NACPASI roles and permissions seeded successfully.'
+        );
+    }
+}

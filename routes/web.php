@@ -8,6 +8,9 @@ use App\Http\Controllers\PackageController;
 use App\Http\Controllers\WifiNetworkController;
 use App\Http\Controllers\Admin\QrCodeController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\PlatformSettingController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -100,13 +103,62 @@ Route::middleware(['auth', 'verified'])
             ->name('update');
     });
     
-/*
+
+    /*
 |--------------------------------------------------------------------------
-| Customer Captive Portal
+| Role Management
 |--------------------------------------------------------------------------
 */
 
+Route::middleware(['auth', 'verified'])
+    ->prefix('roles')
+    ->name('roles.')
+    ->controller(RoleController::class)
+    ->group(function () {
 
+        Route::get('/', 'index')->name('index');
+
+        Route::get('/create', 'create')->name('create');
+
+        Route::post('/', 'store')->name('store');
+
+        Route::get('/{role}/edit', 'edit')->name('edit');
+
+        Route::put('/{role}', 'update')->name('update');
+
+        Route::delete('/{role}', 'destroy')->name('destroy');
+    });
+
+    /*
+|--------------------------------------------------------------------------
+| Permission Management
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('permissions')
+    ->name('permissions.')
+    ->controller(PermissionController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+    });
+
+    
+    /*
+|--------------------------------------------------------------------------
+| Platform Settings
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('settings')
+    ->name('settings.')
+    ->controller(PlatformSettingController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::put('/', 'update')->name('update');
+    });
+    
 /*
 |--------------------------------------------------------------------------
 | Customer Captive Portal

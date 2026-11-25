@@ -193,7 +193,7 @@ export default function Show({
                             </span>
                         </div>
 
-                                        {isSuperAdmin && !user.email_verified_at && (
+                                        {(isSuperAdmin || canManageUsers) && !user.email_verified_at && (
                     <div style={{ marginTop: '16px' }}>
                         <button
                             type="button"
