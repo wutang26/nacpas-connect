@@ -57,4 +57,9 @@ class Organization extends Model
 {
     return $this->hasMany(NetworkIntegration::class);
 }
+
+public function deviceAssets(): HasMany
+{
+    return $this->hasMany(DeviceAsset::class);
+}
 }

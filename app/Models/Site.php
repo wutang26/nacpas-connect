@@ -80,4 +80,9 @@ public function qrCodes(): HasMany
 {
     return $this->hasMany(QrCode::class);
 }
+
+public function deviceAssets(): HasMany
+{
+    return $this->hasMany(DeviceAsset::class);
+}
 }

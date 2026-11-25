@@ -12,6 +12,8 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\PlatformSettingController;
 use App\Http\Controllers\Admin\EmailConfigurationController;
+use App\Http\Controllers\Admin\HardwareDashboardController;
+use App\Http\Controllers\Admin\ProductController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -205,6 +207,63 @@ Route::prefix('portal')
             ->name('payment.pending');
     });
 
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Hardware Management
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware([
+    'auth',
+    'verified',
+    'permission:hardware.dashboard.view',
+])
+    ->prefix('hardware')
+    ->name('hardware.')
+    ->controller(HardwareDashboardController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('dashboard');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Hardware Products Catalogue
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('hardware/products')
+    ->name('hardware.products.')
+    ->controller(ProductController::class)
+    ->group(function () {
+        Route::get('/', 'index')
+            ->middleware('permission:hardware.products.view')
+            ->name('index');
+
+        Route::get('/create', 'create')
+            ->middleware('permission:hardware.products.manage')
+            ->name('create');
+
+        Route::post('/', 'store')
+            ->middleware('permission:hardware.products.manage')
+            ->name('store');
+
+        Route::get('/{product}/edit', 'edit')
+            ->middleware('permission:hardware.products.manage')
+            ->name('edit');
+
+        Route::put('/{product}', 'update')
+            ->middleware('permission:hardware.products.manage')
+            ->name('update');
+
+        Route::delete('/{product}', 'destroy')
+            ->middleware('permission:hardware.products.manage')
+            ->name('destroy');
+    });
 
 
 require __DIR__.'/auth.php';

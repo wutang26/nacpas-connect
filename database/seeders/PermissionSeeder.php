@@ -79,6 +79,22 @@ class PermissionSeeder extends Seeder
             'platform.payments.view',
             'platform.payments.manage',
 
+            // Hardware Management
+            'hardware.dashboard.view',
+            'hardware.products.view',
+            'hardware.products.manage',
+            'hardware.suppliers.view',
+            'hardware.suppliers.manage',
+            'hardware.purchases.view',
+            'hardware.purchases.manage',
+            'hardware.inventory.view',
+            'hardware.inventory.manage',
+            'hardware.sales.view',
+            'hardware.sales.manage',
+            'hardware.installations.view',
+            'hardware.installations.manage',
+            'hardware.reports.view',
+
             // Reports
             'platform.reports.view',
 

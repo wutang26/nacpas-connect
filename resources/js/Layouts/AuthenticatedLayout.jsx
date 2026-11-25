@@ -98,6 +98,25 @@ export default function AuthenticatedLayout({ children }) {
                 },
             ],
         },
+        ...(can('hardware.dashboard.view')
+            ? [{
+                title: 'HARDWARE MANAGEMENT',
+                items: [
+                    {
+                        label: 'Hardware Dashboard',
+                        icon: '🖥️',
+                        href: '/hardware',
+                    },
+                    ...(can('hardware.products.view')
+                        ? [{
+                            label: 'Products Catalogue',
+                            icon: '📦',
+                            href: '/hardware/products',
+                        }]
+                        : []),
+                ],
+            }]
+            : []),
         {
             title: 'SAAS MANAGEMENT',
             items: [
