@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\PlatformSettingController;
 use App\Http\Controllers\Admin\EmailConfigurationController;
 use App\Http\Controllers\Admin\HardwareDashboardController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\DeviceAssetController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -226,6 +227,31 @@ Route::middleware([
     ->controller(HardwareDashboardController::class)
     ->group(function () {
         Route::get('/', 'index')->name('dashboard');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Hardware Device Asset Tracking
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('hardware/assets')
+    ->name('hardware.assets.')
+    ->controller(DeviceAssetController::class)
+    ->group(function () {
+        Route::get('/', 'index')
+            ->middleware('permission:hardware.inventory.view')
+            ->name('index');
+
+        Route::get('/create', 'create')
+            ->middleware('permission:hardware.inventory.manage')
+            ->name('create');
+
+        Route::post('/', 'store')
+            ->middleware('permission:hardware.inventory.manage')
+            ->name('store');
     });
 
 

@@ -114,6 +114,14 @@ export default function AuthenticatedLayout({ children }) {
                             href: '/hardware/products',
                         }]
                         : []),
+
+                        ...(can('hardware.inventory.view')
+                    ? [{
+                        label: 'Device Asset Tracking',
+                        icon: '🔖',
+                        href: '/hardware/assets',
+                    }]
+                    : []),
                 ],
             }]
             : []),
