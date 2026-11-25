@@ -16,6 +16,8 @@ class Subscription extends Model
         'package_name',
         'amount',
         'duration_minutes',
+        'package_snapshot',
+        'access_token_hash',
         'status',
         'starts_at',
         'expires_at',
@@ -26,6 +28,8 @@ class Subscription extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'duration_minutes' => 'integer',
+            'package_snapshot' => 'array',
             'starts_at' => 'datetime',
             'expires_at' => 'datetime',
             'activated_at' => 'datetime',

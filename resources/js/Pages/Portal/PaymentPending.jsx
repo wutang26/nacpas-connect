@@ -1,9 +1,11 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import './PaymentPending.css';
 
 const formatMoney = (amount, locale = 'en-TZ') =>
     new Intl.NumberFormat(locale, {
-        maximumFractionDigits: 0,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
     }).format(Number(amount || 0));
 
 const getNumberLocale = (country) => {
@@ -19,8 +21,63 @@ const getNumberLocale = (country) => {
     return locales[country] || 'en-TZ';
 };
 
+const getPaymentState = (payment) => {
+    if (
+        payment.status === 'successful' &&
+        payment.subscription_status === 'active'
+    ) {
+        return {
+            type: 'success',
+            label: 'MALIPO YAMETHIBITISHWA',
+            title: 'Malipo yamefanikiwa!',
+            description:
+                'FastLipa imethibitisha malipo yako na kifurushi chako kimeanzishwa.',
+        };
+    }
+
+    if (payment.status === 'failed') {
+        return {
+            type: 'failed',
+            label: 'MALIPO HAYAKUKAMILIKA',
+            title: 'Malipo hayakukamilika',
+            description:
+                'Ombi la malipo halijakamilika. Tafadhali angalia ujumbe wa mtandao wako wa simu kabla ya kujaribu tena.',
+        };
+    }
+
+    if (payment.initiation_state === 'uncertain') {
+        return {
+            type: 'uncertain',
+            label: 'OMBI LINAHITAJI UHAKIKI',
+            title: 'Tunathibitisha ombi lako',
+            description:
+                'Hatukupata majibu ya mwisho kutoka FastLipa wakati wa kuanzisha malipo. Angalia simu yako kama umepokea ombi la malipo. Usianzishe ombi jingine kwa sasa.',
+        };
+    }
+
+    if (payment.initiation_state === 'rejected') {
+        return {
+            type: 'failed',
+            label: 'OMBI LIMEKATALIWA',
+            title: 'Ombi la malipo limekataliwa',
+            description:
+                'FastLipa haikukubali ombi la kuanzisha malipo. Hakikisha taarifa za simu ni sahihi kabla ya kujaribu tena.',
+        };
+    }
+
+    return {
+        type: 'pending',
+        label: 'INASUBIRI MALIPO',
+        title: 'Subiri ombi la malipo kwenye simu yako',
+        description:
+            'Ombi la malipo limepokelewa na mfumo. Angalia simu yako kwa USSD Push kutoka kwa mtandao wako wa simu.',
+    };
+};
+
 export default function PaymentPending({ site, payment }) {
     const { platformSettings = {} } = usePage().props;
+
+    const [refreshing, setRefreshing] = useState(false);
 
     const platformName = platformSettings.platform_name || 'NACPASI';
 
@@ -28,34 +85,112 @@ export default function PaymentPending({ site, payment }) {
         platformSettings.currency || 'TZS'
     ).toUpperCase();
 
-    const paymentCurrency =
-        payment.currency || platformCurrency;
+    const paymentCurrency = payment.currency || platformCurrency;
 
     const numberLocale = getNumberLocale(platformSettings.country);
 
+    const state = getPaymentState(payment);
+
+    const isPending = payment.status === 'pending';
+
+    const refreshPayment = () => {
+        if (refreshing) {
+            return;
+        }
+
+        setRefreshing(true);
+
+        router.reload({
+            only: ['payment'],
+            preserveScroll: true,
+            preserveState: true,
+            onFinish: () => setRefreshing(false),
+        });
+    };
+
+    /*
+     * Refresh the database-backed payment status every 8 seconds
+     * while payment remains pending.
+     *
+     * This does not initiate another FastLipa transaction.
+     */
+    useEffect(() => {
+        if (!isPending) {
+            return undefined;
+        }
+
+        const interval = window.setInterval(() => {
+            router.reload({
+                only: ['payment'],
+                preserveScroll: true,
+                preserveState: true,
+            });
+        }, 8000);
+
+        return () => window.clearInterval(interval);
+    }, [isPending]);
+
     return (
         <>
-            <Head title={`${platformName} - Checkout - ${site.name}`} />
+            <Head title={`${platformName} - Malipo - ${site.name}`} />
 
             <div className="payment-status-page">
                 <div className="payment-status-card">
 
-                    <div className="payment-status-icon">
-                        <span>!</span>
+                    <div className={`payment-status-icon ${state.type}`}>
+                        {state.type === 'success' ? '✓' :
+                            state.type === 'failed' ? '×' :
+                                state.type === 'uncertain' ? '?' : '…'}
                     </div>
 
-                    <span className="payment-status-label">
-                        CHECKOUT IMETENGENEZWA
+                    <span className={`payment-status-label ${state.type}`}>
+                        {state.label}
                     </span>
 
-                    <h1>
-                        Ombi lako limepokelewa
-                    </h1>
+                    <h1>{state.title}</h1>
 
                     <p className="payment-status-description">
-                        Mfumo umehifadhi maelezo ya kifurushi chako.
-                        Hata hivyo, malipo halisi bado hayajaanzishwa.
+                        {state.description}
                     </p>
+
+                    {isPending && payment.initiation_state === 'initiated' && (
+                        <div className="payment-instruction">
+                            <strong>Hatua za kufanya kwenye simu yako</strong>
+
+                            <ol>
+                                <li>
+                                    Angalia simu yenye namba {payment.phone}.
+                                </li>
+                                <li>
+                                    Kama umepokea USSD Push, fungua ombi hilo.
+                                </li>
+                                <li>
+                                    Hakiki kiasi cha malipo na jina la huduma.
+                                </li>
+                                <li>
+                                    Ingiza PIN yako ya mobile money kwenye
+                                    prompt rasmi ya mtandao wako ili kuthibitisha.
+                                </li>
+                            </ol>
+
+                            <p>
+                                Usiandike au kumtumia mtu PIN yako. Kama
+                                hujapokea prompt, subiri kidogo na angalia
+                                hali ya malipo hapa chini.
+                            </p>
+                        </div>
+                    )}
+
+                    {isPending && payment.initiation_state === 'uncertain' && (
+                        <div className="payment-warning">
+                            <strong>Usirudie malipo kwa sasa.</strong>
+                            <p>
+                                Oda inaweza kuwa imefika FastLipa hata kama
+                                mfumo haukupata majibu yake. Kwanza hakiki
+                                simu yako na hali ya malipo.
+                            </p>
+                        </div>
+                    )}
 
                     <div className="payment-status-details">
 
@@ -88,23 +223,67 @@ export default function PaymentPending({ site, payment }) {
                         </div>
 
                         <div>
-                            <span>Subscription Status</span>
-                            <strong className="status-pending">
+                            <span>Hali ya malipo</span>
+                            <strong className={`status-value ${state.type}`}>
+                                {payment.status.toUpperCase()}
+                            </strong>
+                        </div>
+
+                        <div>
+                            <span>Hali ya kifurushi</span>
+                            <strong className={`status-value ${
+                                payment.subscription_status === 'active'
+                                    ? 'success'
+                                    : 'pending'
+                            }`}>
                                 {payment.subscription_status.toUpperCase()}
                             </strong>
                         </div>
 
+                        {payment.provider_reference && (
+                            <div>
+                                <span>FastLipa Transaction</span>
+                                <strong>{payment.provider_reference}</strong>
+                            </div>
+                        )}
+
+                        {payment.paid_at && (
+                            <div>
+                                <span>Muda wa malipo</span>
+                                <strong>
+                                    {new Date(payment.paid_at).toLocaleString(
+                                        'en-GB',
+                                        { timeZone: platformSettings.timezone || 'Africa/Dar_es_Salaam' }
+                                    )}
+                                </strong>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="payment-test-warning">
-                        <strong>Hii ni checkout ya majaribio.</strong>
+                    {payment.status === 'successful' && (
+                        <div className="payment-success-note">
+                            <strong>Malipo yamethibitishwa.</strong>
+                            <p>
+                                Kifurushi kimeanzishwa kwenye mfumo wa NACPASI.
+                                Uwezeshaji wa internet kupitia kifaa cha Omada
+                                bado unasubiri kukamilika kwa integration ya
+                                kifaa hicho.
+                            </p>
+                        </div>
+                    )}
 
-                        <p>
-                            Hakuna fedha zilizokatwa kwenye simu yako.
-                            Usichukulie ukurasa huu kama uthibitisho wa malipo.
-                            Internet bado haijawezeshwa.
-                        </p>
-                    </div>
+                    {payment.status === 'pending' && (
+                        <button
+                            type="button"
+                            className="payment-refresh-button"
+                            onClick={refreshPayment}
+                            disabled={refreshing}
+                        >
+                            {refreshing
+                                ? 'Inaangalia...'
+                                : 'Angalia Hali ya Malipo'}
+                        </button>
+                    )}
 
                     <Link
                         href={`/portal/${site.slug}`}

@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\PlatformSettingController;
+use App\Http\Controllers\Admin\EmailConfigurationController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -158,8 +159,26 @@ Route::middleware(['auth', 'verified'])
         Route::get('/', 'index')->name('index');
         Route::put('/', 'update')->name('update');
     });
+
+
+    /*
+|--------------------------------------------------------------------------
+| Email Configuration
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('settings/email')
+    ->name('settings.email.')
+    ->controller(EmailConfigurationController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::put('/', 'update')->name('update');
+        Route::post('/test', 'test')->name('test');
+    });
     
 /*
+
 |--------------------------------------------------------------------------
 | Customer Captive Portal
 |--------------------------------------------------------------------------

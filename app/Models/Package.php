@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -27,7 +26,11 @@ class Package extends Model
     {
         return [
             'price' => 'decimal:2',
+            'duration_minutes' => 'integer',
+            'download_speed_kbps' => 'integer',
+            'upload_speed_kbps' => 'integer',
             'data_limit_bytes' => 'integer',
+            'device_limit' => 'integer',
             'is_active' => 'boolean',
         ];
     }

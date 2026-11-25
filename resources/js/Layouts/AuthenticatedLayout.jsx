@@ -156,11 +156,18 @@ export default function AuthenticatedLayout({ children }) {
             : []),
 
         ...(canViewSettings
-            ? [{
-                label: 'Platform Settings',
-                icon: '⚙️',
-                href: '/settings',
-            }]
+            ? [
+                {
+                    label: 'Platform Settings',
+                    icon: '⚙️',
+                    href: '/settings',
+                },
+                {
+                    label: 'Email Configuration',
+                    icon: '✉️',
+                    href: '/settings/email',
+                },
+            ]
             : []),
     ];
 

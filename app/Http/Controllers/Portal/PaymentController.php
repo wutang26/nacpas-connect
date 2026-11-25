@@ -20,6 +20,9 @@ use Throwable;
 
 class PaymentController extends Controller
 {
+    /**
+     * Create a new package purchase and initiate FastLipa payment.
+     */
     public function checkout(
         Request $request,
         Site $site,
@@ -36,8 +39,14 @@ class PaymentController extends Controller
             'phone' => ['required', 'string', 'max:30'],
         ]);
 
-        // Normalize Tanzanian mobile numbers.
-        $phone = preg_replace('/[\s\-()]/', '', $validated['phone']);
+        /*
+         * Normalize Tanzanian mobile numbers.
+         */
+        $phone = preg_replace(
+            '/[\s\-()]/',
+            '',
+            $validated['phone']
+        );
 
         if (str_starts_with($phone, '0')) {
             $phone = '+255' . substr($phone, 1);
@@ -49,7 +58,12 @@ class PaymentController extends Controller
 
         $phoneValidation = Validator::make(
             ['phone' => $phone],
-            ['phone' => ['required', 'regex:/^\+255[67][0-9]{8}$/']],
+            [
+                'phone' => [
+                    'required',
+                    'regex:/^\+255[67][0-9]{8}$/',
+                ],
+            ],
             [
                 'phone.regex' =>
                     'Tafadhali ingiza namba sahihi ya simu ya Tanzania.',
@@ -62,8 +76,9 @@ class PaymentController extends Controller
             ]);
         }
 
-        // FastLipa allows a maximum of 5 create requests per minute.
-        // This limit is shared across the application.
+        /*
+         * FastLipa allows a maximum of 5 create requests per minute.
+         */
         $rateLimitKey = 'fastlipa-create-transactions-global';
 
         if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
@@ -73,8 +88,16 @@ class PaymentController extends Controller
             ]);
         }
 
-        // Create local records first. No payment is considered successful here.
-        $result = DB::transaction(function () use ($site, $validated, $phone) {
+        /*
+         * Create subscription, payment and access token.
+         *
+         * Only the token hash is stored in the database.
+         */
+        $result = DB::transaction(function () use (
+            $site,
+            $validated,
+            $phone
+        ) {
             $package = $site->packages()
                 ->where('id', $validated['package_id'])
                 ->where('is_active', true)
@@ -118,6 +141,16 @@ class PaymentController extends Controller
             $paymentReference =
                 'NCP-PAY-' . Str::upper(Str::random(12));
 
+            /*
+             * Generate a secure access token.
+             */
+            $accessToken = Str::random(64);
+
+            $accessTokenHash = hash('sha256', $accessToken);
+
+            /*
+             * Snapshot package information.
+             */
             $packageSnapshot = [
                 'package_id' => $package->id,
                 'name' => $package->name,
@@ -133,6 +166,9 @@ class PaymentController extends Controller
 
             $now = now();
 
+            /*
+             * Create an independent subscription for this purchase.
+             */
             $subscriptionId = DB::table('subscriptions')->insertGetId([
                 'site_id' => $site->id,
                 'customer_id' => $customer->id,
@@ -142,6 +178,7 @@ class PaymentController extends Controller
                 'amount' => $package->price,
                 'duration_minutes' => $package->duration_minutes,
                 'package_snapshot' => json_encode($packageSnapshot),
+                'access_token_hash' => $accessTokenHash,
                 'status' => 'pending',
                 'starts_at' => null,
                 'expires_at' => null,
@@ -150,6 +187,9 @@ class PaymentController extends Controller
                 'updated_at' => $now,
             ]);
 
+            /*
+             * Create an independent payment.
+             */
             $paymentId = DB::table('payments')->insertGetId([
                 'subscription_id' => $subscriptionId,
                 'customer_id' => $customer->id,
@@ -175,25 +215,59 @@ class PaymentController extends Controller
                 'payment_reference' => $paymentReference,
                 'amount' => (float) $package->price,
                 'phone' => $phone,
+                'access_token' => $accessToken,
             ];
         });
 
-        // Count this attempt before making the external API request.
+        /*
+         * Keep original access token in Laravel session.
+         *
+         * Never expose it in the URL, Inertia props,
+         * payment metadata or application logs.
+         */
+        $tokenSessionKey =
+            "subscription_access_tokens.{$site->id}.{$result['payment_reference']}";
+
+        $request->session()->put(
+            $tokenSessionKey,
+            $result['access_token']
+        );
+
+        /*
+         * Count this attempt before making the external request.
+         */
         RateLimiter::hit($rateLimitKey, 60);
 
+        /*
+         * Prepare FastLipa request.
+         */
         $payload = [
             'amount' => $result['amount'],
-            'number' => preg_replace('/^\+/', '', $result['phone']),
+            'number' => preg_replace(
+                '/^\+/',
+                '',
+                $result['phone']
+            ),
             'reference' => $result['payment_reference'],
         ];
 
-        // Only provide a webhook URL when APP_URL is publicly reachable.
-        $appUrl = rtrim((string) config('app.url'), '/');
+        /*
+         * Only provide a webhook URL when APP_URL is publicly reachable.
+         */
+        $appUrl = rtrim(
+            (string) config('app.url'),
+            '/'
+        );
+
         $appHost = parse_url($appUrl, PHP_URL_HOST);
 
         if (
             $appHost &&
-            !in_array($appHost, ['localhost', '127.0.0.1', '::1'], true)
+            !in_array(
+                $appHost,
+                ['localhost', '127.0.0.1', '::1'],
+                true
+            )
         ) {
             $payload['webhook_url'] =
                 $appUrl . '/api/webhooks/fastlipa';
@@ -203,60 +277,180 @@ class PaymentController extends Controller
 
         try {
             $gatewayResult = $fastLipa->createTransaction($payload);
-            $body = $gatewayResult['body'] ?? [];
-            $gatewayData = $body['data'] ?? [];
-            $tranId = $gatewayData['tranID'] ?? $gatewayData['tranid'] ?? null;
 
+            $body = $gatewayResult['body'] ?? [];
+
+            $gatewayData = $body['data'] ?? [];
+
+            $tranId =
+                $gatewayData['tranID'] ??
+                $gatewayData['tranid'] ??
+                null;
+
+            /*
+             * FastLipa rejected the initiation request.
+             *
+             * A successful HTTP response alone is not enough.
+             * We also require FastLipa's application status
+             * and a valid transaction ID.
+             */
             if (
                 !($gatewayResult['successful'] ?? false) ||
+                !is_array($body) ||
                 !($body['status'] ?? false) ||
                 !is_string($tranId) ||
                 $tranId === ''
             ) {
-                $payment->update([
-                    'status' => 'failed',
-                    'metadata' => array_merge($payment->metadata ?? [], [
-                        'payment_initiated' => false,
-                        'initiation_state' => 'rejected',
-                        'gateway_http_status' =>
-                            $gatewayResult['http_status'] ?? null,
-                        'gateway_response' => $body,
-                    ]),
-                ]);
+                DB::transaction(function () use (
+                    $payment,
+                    $gatewayResult,
+                    $body
+                ) {
+                    $lockedPayment = Payment::whereKey($payment->id)
+                        ->lockForUpdate()
+                        ->first();
 
-                Log::warning('FastLipa rejected payment initiation.', [
-                    'payment_reference' => $payment->internal_reference,
-                    'http_status' => $gatewayResult['http_status'] ?? null,
-                ]);
+                    if (!$lockedPayment) {
+                        return;
+                    }
+
+                    /*
+                     * Do not overwrite a successful payment.
+                     * A webhook may already have processed it.
+                     */
+                    if ($lockedPayment->status === 'pending') {
+                        $metadata = $lockedPayment->metadata ?? [];
+
+                        $lockedPayment->update([
+                            'status' => 'failed',
+                            'metadata' => array_merge($metadata, [
+                                'payment_initiated' => false,
+                                'initiation_state' => 'rejected',
+                                'gateway_http_status' =>
+                                    $gatewayResult['http_status'] ?? null,
+                                'gateway_response' => $body,
+                            ]),
+                        ]);
+
+                        DB::table('subscriptions')
+                            ->where('id', $lockedPayment->subscription_id)
+                            ->where('status', 'pending')
+                            ->update([
+                                'status' => 'cancelled',
+                                'updated_at' => now(),
+                            ]);
+                    }
+                });
+
+                $request->session()->forget($tokenSessionKey);
+
+                Log::warning(
+                    'FastLipa rejected payment initiation.',
+                    [
+                        'payment_reference' =>
+                            $payment->internal_reference,
+                        'http_status' =>
+                            $gatewayResult['http_status'] ?? null,
+                    ]
+                );
             } else {
-                $payment->update([
-                    'provider' => 'fastlipa',
-                    'provider_reference' => $tranId,
-                    'metadata' => array_merge($payment->metadata ?? [], [
-                        'payment_initiated' => true,
-                        'initiation_state' => 'initiated',
-                        'gateway_payment_status' =>
-                            $gatewayData['payment_status'] ?? 'PENDING',
-                        'gateway_response' => $body,
-                    ]),
-                ]);
+                /*
+                 * FastLipa accepted the initiation request.
+                 *
+                 * This does NOT mean the customer has paid.
+                 * It also does not independently prove that
+                 * the USSD prompt reached the customer's phone.
+                 */
+                DB::transaction(function () use (
+                    $payment,
+                    $tranId,
+                    $body,
+                    $gatewayData
+                ) {
+                    $lockedPayment = Payment::whereKey($payment->id)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if (!$lockedPayment) {
+                        return;
+                    }
+
+                    /*
+                     * Do not overwrite a payment already confirmed
+                     * by the webhook.
+                     */
+                    if ($lockedPayment->status === 'pending') {
+                        $metadata = $lockedPayment->metadata ?? [];
+
+                        $lockedPayment->update([
+                            'provider' => 'fastlipa',
+                            'provider_reference' => $tranId,
+                            'metadata' => array_merge($metadata, [
+                                'payment_initiated' => true,
+                                'initiation_state' => 'initiated',
+                                'gateway_payment_status' =>
+                                    $gatewayData['payment_status'] ?? 'PENDING',
+                                'gateway_response' => $body,
+                            ]),
+                        ]);
+                    }
+                });
             }
         } catch (Throwable $exception) {
-            // A timeout or connection error may happen after FastLipa
-            // has received the request. Never retry create automatically.
-            $payment->update([
-                'metadata' => array_merge($payment->metadata ?? [], [
-                    'payment_initiated' => false,
-                    'initiation_state' => 'uncertain',
-                    'initiation_uncertain' => true,
-                    'error_type' => class_basename($exception),
-                ]),
-            ]);
+            /*
+             * A timeout or connection error may happen after FastLipa
+             * has already received the request.
+             *
+             * Never automatically retry or mark failed in this case.
+             */
+            try {
+                DB::transaction(function () use (
+                    $payment,
+                    $exception
+                ) {
+                    $lockedPayment = Payment::whereKey($payment->id)
+                        ->lockForUpdate()
+                        ->first();
 
-            Log::error('FastLipa payment initiation result is uncertain.', [
-                'payment_reference' => $payment->internal_reference,
-                'exception' => class_basename($exception),
-            ]);
+                    if (
+                        !$lockedPayment ||
+                        $lockedPayment->status !== 'pending'
+                    ) {
+                        return;
+                    }
+
+                    $metadata = $lockedPayment->metadata ?? [];
+
+                    $lockedPayment->update([
+                        'metadata' => array_merge($metadata, [
+                            'payment_initiated' => false,
+                            'initiation_state' => 'uncertain',
+                            'initiation_uncertain' => true,
+                            'error_type' => class_basename($exception),
+                        ]),
+                    ]);
+                });
+            } catch (Throwable $updateException) {
+                Log::error(
+                    'Could not update uncertain FastLipa payment state.',
+                    [
+                        'payment_reference' =>
+                            $payment->internal_reference,
+                        'exception' =>
+                            class_basename($updateException),
+                    ]
+                );
+            }
+
+            Log::error(
+                'FastLipa payment initiation result is uncertain.',
+                [
+                    'payment_reference' =>
+                        $payment->internal_reference,
+                    'exception' =>
+                        class_basename($exception),
+                ]
+            );
         }
 
         return redirect()->route('portal.payment.pending', [
@@ -265,8 +459,17 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function pending(Site $site, string $reference): Response
-    {
+    /**
+     * Display payment status.
+     *
+     * Payment status comes from the database.
+     * The original access token is never exposed to Inertia.
+     */
+    public function pending(
+        Request $request,
+        Site $site,
+        string $reference
+    ): Response {
         abort_if(
             $site->status !== 'active' ||
             $site->organization?->status !== 'active',
@@ -280,12 +483,6 @@ class PaymentController extends Controller
                 '=',
                 'subscriptions.id'
             )
-            ->join(
-                'customers',
-                'payments.customer_id',
-                '=',
-                'customers.id'
-            )
             ->where('payments.internal_reference', $reference)
             ->where('subscriptions.site_id', $site->id)
             ->select([
@@ -298,6 +495,8 @@ class PaymentController extends Controller
                 'payments.status',
                 'payments.metadata',
                 'payments.created_at',
+                'payments.paid_at',
+
                 'subscriptions.reference as subscription_reference',
                 'subscriptions.package_name',
                 'subscriptions.status as subscription_status',
@@ -306,13 +505,17 @@ class PaymentController extends Controller
 
         abort_unless($payment, 404);
 
-        $metadata = json_decode($payment->metadata ?? '{}', true) ?: [];
+        $metadata = json_decode(
+            $payment->metadata ?? '{}',
+            true
+        ) ?: [];
 
         return Inertia::render('Portal/PaymentPending', [
             'site' => [
                 'name' => $site->name,
                 'slug' => $site->slug,
             ],
+
             'payment' => [
                 'reference' => $payment->internal_reference,
                 'provider' => $payment->provider,
@@ -321,12 +524,29 @@ class PaymentController extends Controller
                 'currency' => $payment->currency,
                 'phone' => $payment->phone,
                 'status' => $payment->status,
+
                 'initiation_state' =>
                     $metadata['initiation_state'] ?? 'unknown',
+
+                'payment_initiated' =>
+                    (bool) ($metadata['payment_initiated'] ?? false),
+
+                'gateway_payment_status' =>
+                    $metadata['gateway_payment_status'] ?? null,
+
+                'verified_by_fastlipa' =>
+                    (bool) ($metadata['verified_by_fastlipa'] ?? false),
+
                 'package_name' => $payment->package_name,
+
                 'subscription_reference' =>
                     $payment->subscription_reference,
-                'subscription_status' => $payment->subscription_status,
+
+                'subscription_status' =>
+                    $payment->subscription_status,
+
+                'created_at' => $payment->created_at,
+                'paid_at' => $payment->paid_at,
             ],
         ]);
     }
