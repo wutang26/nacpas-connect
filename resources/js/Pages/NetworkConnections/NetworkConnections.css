@@ -580,3 +580,190 @@
         flex-direction: column;
     }
 }
+
+/* Omada configuration form */
+
+.nc-settings-section {
+    padding: 22px 23px;
+    border-top: 1px solid #e8eeea;
+    background: #f9fcfa;
+}
+
+.nc-settings-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 22px;
+}
+
+.nc-settings-heading h3 {
+    margin: 0;
+    color: #20382a;
+    font-size: 15px;
+    font-weight: 750;
+}
+
+.nc-settings-heading p {
+    margin: 6px 0 0;
+    color: #7c8981;
+    font-size: 11px;
+    line-height: 1.6;
+}
+
+.nc-settings-lock {
+    padding: 7px 10px;
+    border: 1px solid #d7e9dd;
+    border-radius: 20px;
+    background: #edf7f0;
+    color: #247847;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.nc-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 17px;
+}
+
+.nc-form-field {
+    min-width: 0;
+}
+
+.nc-form-field label {
+    display: block;
+    margin-bottom: 7px;
+    color: #405548;
+    font-size: 11px;
+    font-weight: 750;
+}
+
+.nc-required {
+    color: #c33e36;
+}
+
+.nc-form-field input {
+    display: block;
+    width: 100%;
+    min-height: 42px;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #dce6df;
+    border-radius: 8px;
+    outline: none;
+    background: #fff;
+    color: #263a2f;
+    font-family: inherit;
+    font-size: 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.nc-form-field input:focus {
+    border-color: #29945a;
+    box-shadow: 0 0 0 3px rgba(41, 148, 90, 0.09);
+}
+
+.nc-form-field input::placeholder {
+    color: #a2ada5;
+}
+
+.nc-field-help {
+    display: block;
+    margin-top: 6px;
+    color: #849087;
+    font-size: 10px;
+    line-height: 1.5;
+}
+
+.nc-field-error {
+    display: block;
+    margin-top: 6px;
+    color: #bd4138;
+    font-size: 10px;
+}
+
+.nc-settings-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding-top: 19px;
+    margin-top: 20px;
+    border-top: 1px solid #e8eeea;
+}
+
+.nc-settings-footer p {
+    max-width: 550px;
+    margin: 0;
+    color: #7b8980;
+    font-size: 10px;
+    line-height: 1.7;
+}
+
+.nc-settings-footer p strong {
+    color: #2b7047;
+}
+
+.nc-save-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 41px;
+    padding: 0 17px;
+    border: 0;
+    border-radius: 8px;
+    background: #21834d;
+    color: #fff;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 750;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.nc-save-button:hover:not(:disabled) {
+    background: #176b3d;
+}
+
+.nc-save-button:disabled {
+    opacity: 0.65;
+    cursor: wait;
+}
+
+.nc-flash-success {
+    padding: 13px 16px;
+    margin-bottom: 20px;
+    border: 1px solid #cfe7d7;
+    border-radius: 9px;
+    background: #f0f9f3;
+    color: #216d40;
+    font-size: 12px;
+    font-weight: 650;
+}
+
+@media (max-width: 650px) {
+    .nc-settings-section {
+        padding: 18px;
+    }
+
+    .nc-settings-heading {
+        flex-direction: column;
+    }
+
+    .nc-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .nc-settings-footer {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .nc-save-button {
+        width: 100%;
+    }
+}

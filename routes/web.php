@@ -302,17 +302,29 @@ Route::middleware(['auth', 'verified'])
 Route::middleware([
     'auth',
     'verified',
-    'permission:network.management.view',
 ])
     ->prefix('network-connections')
     ->name('network-connections.')
     ->controller(NetworkConnectionController::class)
     ->group(function () {
-        Route::get('/', 'index')->name('index');
+
+        Route::get('/', 'index')
+            ->middleware('permission:network.management.view')
+            ->name('index');
 
         Route::post('/{integration}/test', 'test')
-            ->middleware('throttle:5,1')
+            ->middleware([
+                'permission:network.management.view',
+                'throttle:5,1',
+            ])
             ->name('test');
+
+        Route::put('/{integration}/settings', 'updateOmadaSettings')
+            ->middleware([
+                'permission:network.credentials.manage',
+                'throttle:5,1',
+            ])
+            ->name('settings.update');
     });
-    
+
 require __DIR__.'/auth.php';

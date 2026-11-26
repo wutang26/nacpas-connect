@@ -1,4 +1,5 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+
+import { Head, Link, router, usePage, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import './NetworkConnections.css';
@@ -31,7 +32,187 @@ function StatusBadge({ status }) {
     );
 }
 
-function IntegrationCard({ integration, lastTest, onTest, testing }) {
+function FormField({
+    label,
+    name,
+    value,
+    onChange,
+    error,
+    placeholder,
+    type = 'text',
+    required = false,
+    help,
+}) {
+    return (
+        <div className="nc-form-field">
+            <label htmlFor={`nc-${name}`}>
+                {label}
+                {required && <span className="nc-required"> *</span>}
+            </label>
+
+            <input
+                id={`nc-${name}`}
+                type={type}
+                value={value ?? ''}
+                onChange={(event) => onChange(event.target.value)}
+                placeholder={placeholder}
+                autoComplete="off"
+            />
+
+            {help && <small className="nc-field-help">{help}</small>}
+
+            {error && <small className="nc-field-error">{error}</small>}
+        </div>
+    );
+}
+
+function OmadaSettingsForm({ integration }) {
+    const form = useForm({
+        controller_url: integration.controller_url || '',
+        controller_version: integration.controller_version || '',
+        controller_site_id: integration.controller_site_id || '',
+        controller_id: integration.controller_id || '',
+        api_region: integration.api_region || '',
+        hotspot_username: integration.credential_username || '',
+        hotspot_password: '',
+    });
+
+    const submit = (event) => {
+        event.preventDefault();
+
+        form.put(
+            `/network-connections/${integration.id}/settings`,
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    form.setData('hotspot_password', '');
+                },
+            }
+        );
+    };
+
+    return (
+        <section className="nc-settings-section">
+            <div className="nc-settings-heading">
+                <div>
+                    <h3>Omada Integration Configuration</h3>
+                    <p>
+                        Configure the Omada Cloud API connection and
+                        Hotspot Operator authentication credentials.
+                    </p>
+                </div>
+
+                <span className="nc-settings-lock">SECURE SETTINGS</span>
+            </div>
+
+            <form onSubmit={submit}>
+                <div className="nc-form-grid">
+                    <FormField
+                        label="Controller API URL"
+                        name="controller_url"
+                        value={form.data.controller_url}
+                        onChange={(value) => form.setData('controller_url', value)}
+                        error={form.errors.controller_url}
+                        placeholder="https://euw1-api-omada-essential-controller.tplinkcloud.com"
+                        required
+                        help="Tumia Omada Cloud API endpoint, si device inform URL."
+                    />
+
+                    <FormField
+                        label="Controller Version"
+                        name="controller_version"
+                        value={form.data.controller_version}
+                        onChange={(value) => form.setData('controller_version', value)}
+                        error={form.errors.controller_version}
+                        placeholder="6.3.0.200"
+                    />
+
+                    <FormField
+                        label="Controller ID"
+                        name="controller_id"
+                        value={form.data.controller_id}
+                        onChange={(value) => form.setData('controller_id', value)}
+                        error={form.errors.controller_id}
+                        placeholder="Omada Controller ID"
+                        required
+                    />
+
+                    <FormField
+                        label="API Region"
+                        name="api_region"
+                        value={form.data.api_region}
+                        onChange={(value) => form.setData('api_region', value)}
+                        error={form.errors.api_region}
+                        placeholder="euw1"
+                        required
+                    />
+
+                    <FormField
+                        label="Omada Controller Site ID"
+                        name="controller_site_id"
+                        value={form.data.controller_site_id}
+                        onChange={(value) => form.setData('controller_site_id', value)}
+                        error={form.errors.controller_site_id}
+                        placeholder="Leave blank until the actual site ID is known"
+                        help="Hii si NACPASI Site ID. Usibuni thamani yake."
+                    />
+
+                    <FormField
+                        label="Hotspot Operator Username"
+                        name="hotspot_username"
+                        value={form.data.hotspot_username}
+                        onChange={(value) => form.setData('hotspot_username', value)}
+                        error={form.errors.hotspot_username}
+                        placeholder="Omada Hotspot Operator username"
+                        required
+                    />
+
+                    <FormField
+                        label="Hotspot Operator Password"
+                        name="hotspot_password"
+                        type="password"
+                        value={form.data.hotspot_password}
+                        onChange={(value) => form.setData('hotspot_password', value)}
+                        error={form.errors.hotspot_password}
+                        placeholder="Enter new password or leave blank"
+                        help="Password ya zamani itabaki ikiwa utaacha sehemu hii tupu."
+                    />
+                </div>
+
+                <div className="nc-settings-footer">
+                    <p>
+                        <strong>Security:</strong> Password inasimbwa
+                        (encrypted) kabla ya kuhifadhiwa. Haitarudishwa
+                        kwenye frontend.
+                    </p>
+
+                    <button
+                        type="submit"
+                        className="nc-save-button"
+                        disabled={form.processing}
+                    >
+                        {form.processing ? (
+                            <>
+                                <span className="nc-spinner" />
+                                Saving Configuration...
+                            </>
+                        ) : (
+                            'Save Omada Configuration'
+                        )}
+                    </button>
+                </div>
+            </form>
+        </section>
+    );
+}
+
+function IntegrationCard({
+    integration,
+    lastTest,
+    onTest,
+    testing,
+    canManageCredentials,
+}) {
     const isOmada = integration.provider === 'omada';
 
     const testResult =
@@ -112,6 +293,10 @@ function IntegrationCard({ integration, lastTest, onTest, testing }) {
                     </strong>
                 </div>
             </div>
+
+            {canManageCredentials && isOmada && (
+                <OmadaSettingsForm integration={integration} />
+            )}
 
             <div className="nc-test-section">
                 <div className="nc-test-heading">
@@ -221,7 +406,10 @@ function IntegrationCard({ integration, lastTest, onTest, testing }) {
     );
 }
 
-export default function Index({ integrations = [] }) {
+export default function Index({
+    integrations = [],
+    canManageCredentials = false,
+}) {
     const { flash = {} } = usePage().props;
     const [testingId, setTestingId] = useState(null);
 
@@ -283,6 +471,12 @@ export default function Index({ integrations = [] }) {
                     </p>
                 </div>
 
+                {flash.success && (
+                    <div className="nc-flash-success">
+                        {flash.success}
+                    </div>
+                )}
+
                 <div className="nc-summary">
                     <div className="nc-summary-card">
                         <span>Configured Integrations</span>
@@ -341,6 +535,7 @@ export default function Index({ integrations = [] }) {
                                 lastTest={lastTest}
                                 onTest={testConnection}
                                 testing={testingId === integration.id}
+                                canManageCredentials={canManageCredentials}
                             />
                         ))}
                     </div>
