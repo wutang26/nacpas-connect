@@ -52,9 +52,7 @@ class HotspotController extends Controller
                 'region' => $site->region,
                 'district' => $site->district,
             ],
-
             'packages' => $packages,
-
             'contextToken' => $contextToken,
         ]);
     }
@@ -79,9 +77,11 @@ class HotspotController extends Controller
         ];
 
         $hasOmadaParameters = collect($parameterNames)
-            ->contains(fn ($name) => $request->query->has($name));
+            ->contains(
+                fn ($name) => $request->query->has($name)
+            );
 
-        // Allow normal portal visits without Omada redirect parameters.
+        // Normal portal visits do not require Omada parameters.
         if (!$hasOmadaParameters) {
             return null;
         }
@@ -130,7 +130,7 @@ class HotspotController extends Controller
                 'redirectUrl' => [
                     'required',
                     'string',
-                    'url',
+                    'url:http,https',
                     'max:2048',
                 ],
 
@@ -143,24 +143,58 @@ class HotspotController extends Controller
         );
 
         if ($validator->fails()) {
-            abort(422, 'Taarifa zilizotumwa na Omada hazijakamilika au si sahihi.');
+            abort(
+                422,
+                'Taarifa zilizotumwa na Omada hazijakamilika au si sahihi.'
+            );
         }
 
         $data = $validator->validated();
 
-        // Only HTTPS redirect URLs are accepted.
+        /*
+         * Validate redirect URL structure.
+         *
+         * HTTP is accepted because Omada may send HTTP connectivity
+         * check URLs. This URL is stored as context only. It must
+         * never be used as proof of payment or WiFi authorization.
+         */
         $redirectUrl = parse_url($data['redirectUrl']);
 
         if (
             !is_array($redirectUrl) ||
-            strtolower($redirectUrl['scheme'] ?? '') !== 'https' ||
+            !in_array(
+                strtolower($redirectUrl['scheme'] ?? ''),
+                ['http', 'https'],
+                true
+            ) ||
             empty($redirectUrl['host']) ||
             isset($redirectUrl['user']) ||
-            isset($redirectUrl['pass'])
+            isset($redirectUrl['pass']) ||
+            preg_match('/[\r\n]/', $data['redirectUrl'])
         ) {
-            abort(422, 'Omada imetuma redirect URL isiyoruhusiwa.');
+            abort(
+                422,
+                'Omada imetuma redirect URL isiyoruhusiwa.'
+            );
         }
 
+        /*
+         * Reject stale Omada requests.
+         *
+         * Allow 10 minutes of clock difference to accommodate
+         * network delays and small clock synchronization differences.
+         */
+        $omadaTimestamp = (int) $data['t'];
+
+        abort_if(
+            abs(now()->timestamp - $omadaTimestamp) > 600,
+            422,
+            'Omada request imepitwa na muda. Tafadhali reconnect WiFi.'
+        );
+
+        /*
+         * Bind the captured context to the current Laravel session.
+         */
         $sessionId = $request->session()->getId();
 
         abort_if(
@@ -174,7 +208,10 @@ class HotspotController extends Controller
         WifiPortalContext::create([
             'context_token' => $contextToken,
 
-            'session_hash' => hash('sha256', $sessionId),
+            'session_hash' => hash(
+                'sha256',
+                $sessionId
+            ),
 
             'site_id' => $site->id,
 
@@ -196,7 +233,7 @@ class HotspotController extends Controller
 
             'redirect_url' => $data['redirectUrl'],
 
-            'omada_timestamp' => (int) $data['t'],
+            'omada_timestamp' => $omadaTimestamp,
 
             'context_status' => 'captured',
 
