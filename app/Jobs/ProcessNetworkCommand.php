@@ -44,11 +44,43 @@ class ProcessNetworkCommand implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        NetworkCommand::whereKey($this->commandId)
-            ->whereIn('status', ['pending', 'processing'])
+        $message = $exception->getMessage();
+
+        /*
+         * If the command was still pending, the processor
+         * had not claimed it for execution.
+         *
+         * Therefore, it is safe to mark it failed.
+         */
+        NetworkCommand::query()
+            ->whereKey($this->commandId)
+            ->where('status', 'pending')
             ->update([
                 'status' => 'failed',
-                'error_message' => $exception->getMessage(),
+                'error_message' =>
+                    'Queue job failed before network command execution: ' . $message,
+            ]);
+
+        /*
+         * If execution had already started, the controller
+         * may have received the request.
+         *
+         * Never assume that the command failed externally.
+         * Mark it unknown and require manual reconciliation.
+         */
+        NetworkCommand::query()
+            ->whereKey($this->commandId)
+            ->where('status', 'processing')
+            ->update([
+                'status' => 'unknown',
+                'response' => [
+                    'success' => false,
+                    'outcome' => 'unknown',
+                    'message' =>
+                        'Queue worker failed after execution started. Controller outcome could not be confirmed.',
+                ],
+                'error_message' =>
+                    'Queue worker failed after execution started. Manual reconciliation is required. ' . $message,
                 'executed_at' => now(),
             ]);
     }

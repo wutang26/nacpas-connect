@@ -14,14 +14,15 @@ use App\Models\User;
 use App\Models\WifiSession;
 use App\Services\Network\NetworkCommandProcessor;
 use App\Services\Network\NetworkManager;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Str;
 use Mockery\MockInterface;
-use Tests\TestCase;
 use RuntimeException;
+use Tests\TestCase;
 
 class NetworkCommandProcessorTest extends TestCase
 {
-    use DatabaseMigrations;
+    use RefreshDatabase;
 
     public function test_authorize_command_is_marked_succeeded_when_adapter_succeeds(): void
     {
@@ -54,14 +55,13 @@ class NetworkCommandProcessorTest extends TestCase
         $this->assertNotNull($command->last_attempt_at);
         $this->assertNotNull($command->executed_at);
         $this->assertNull($command->error_message);
-
         $this->assertSame(
             'Client authorized successfully.',
             $command->response['message']
         );
     }
 
-    public function test_authorize_command_is_marked_failed_when_adapter_fails(): void
+    public function test_explicit_controller_rejection_marks_command_failed(): void
     {
         $fixture = $this->createFixture();
         $command = $this->createCommand($fixture, 'authorize_client');
@@ -75,6 +75,7 @@ class NetworkCommandProcessorTest extends TestCase
                 )
                 ->andReturn([
                     'success' => false,
+                    'outcome' => 'rejected',
                     'provider' => 'omada',
                     'message' => 'Omada authorization failed.',
                 ]);
@@ -96,8 +97,44 @@ class NetworkCommandProcessorTest extends TestCase
             $command->error_message
         );
         $this->assertFalse($command->response['success']);
+        $this->assertSame('rejected', $command->response['outcome']);
     }
 
+    public function test_uncertain_controller_response_marks_command_unknown(): void
+    {
+        $fixture = $this->createFixture();
+        $command = $this->createCommand($fixture, 'authorize_client');
+
+        $this->mock(NetworkManager::class, function (MockInterface $mock) use ($fixture) {
+            $mock->shouldReceive('authorizeClient')
+                ->once()
+                ->withArgs(fn ($integration, $session) =>
+                    $integration->id === $fixture['integration']->id
+                    && $session->id === $fixture['session']->id
+                )
+                ->andReturn([
+                    'success' => false,
+                    'provider' => 'omada',
+                    'message' => 'Controller response unavailable.',
+                ]);
+        });
+
+        app(NetworkCommandProcessor::class)->process(
+            $command->id,
+            new ProcessNetworkCommand($command->id)
+        );
+
+        $command->refresh();
+
+        $this->assertSame('unknown', $command->status);
+        $this->assertSame(1, $command->attempts);
+        $this->assertNotNull($command->executed_at);
+        $this->assertSame(
+            'Controller outcome could not be confirmed. Manual reconciliation is required.',
+            $command->error_message
+        );
+        $this->assertSame('unknown', $command->response['outcome']);
+    }
 
     public function test_succeeded_command_is_not_executed_again(): void
     {
@@ -123,6 +160,68 @@ class NetworkCommandProcessorTest extends TestCase
 
         $this->assertSame('succeeded', $command->status);
         $this->assertSame(1, $command->attempts);
+    }
+
+    public function test_failed_command_is_not_executed_again(): void
+    {
+        $fixture = $this->createFixture();
+        $command = $this->createCommand($fixture, 'authorize_client');
+
+        $command->update([
+            'status' => 'failed',
+            'attempts' => 2,
+            'error_message' => 'Controller rejected the command.',
+        ]);
+
+        $this->mock(NetworkManager::class, function (MockInterface $mock) {
+            $mock->shouldNotReceive('authorizeClient');
+            $mock->shouldNotReceive('disconnectClient');
+        });
+
+        app(NetworkCommandProcessor::class)->process(
+            $command->id,
+            new ProcessNetworkCommand($command->id)
+        );
+
+        $command->refresh();
+
+        $this->assertSame('failed', $command->status);
+        $this->assertSame(2, $command->attempts);
+        $this->assertSame(
+            'Controller rejected the command.',
+            $command->error_message
+        );
+    }
+
+    public function test_unknown_command_is_not_executed_again(): void
+    {
+        $fixture = $this->createFixture();
+        $command = $this->createCommand($fixture, 'authorize_client');
+
+        $command->update([
+            'status' => 'unknown',
+            'attempts' => 2,
+            'error_message' => 'Manual reconciliation is required.',
+        ]);
+
+        $this->mock(NetworkManager::class, function (MockInterface $mock) {
+            $mock->shouldNotReceive('authorizeClient');
+            $mock->shouldNotReceive('disconnectClient');
+        });
+
+        app(NetworkCommandProcessor::class)->process(
+            $command->id,
+            new ProcessNetworkCommand($command->id)
+        );
+
+        $command->refresh();
+
+        $this->assertSame('unknown', $command->status);
+        $this->assertSame(2, $command->attempts);
+        $this->assertSame(
+            'Manual reconciliation is required.',
+            $command->error_message
+        );
     }
 
     public function test_disconnect_command_uses_disconnect_client(): void
@@ -161,7 +260,7 @@ class NetworkCommandProcessorTest extends TestCase
         );
     }
 
-    public function test_exception_is_recorded_and_rethrown_for_queue_retry(): void
+    public function test_exception_marks_command_unknown_without_automatic_retry(): void
     {
         $fixture = $this->createFixture();
         $command = $this->createCommand($fixture, 'authorize_client');
@@ -176,32 +275,26 @@ class NetworkCommandProcessorTest extends TestCase
                 ->andThrow(new RuntimeException('Temporary controller error.'));
         });
 
-        try {
-            app(NetworkCommandProcessor::class)->process(
-                $command->id,
-                new ProcessNetworkCommand($command->id)
-            );
-
-            $this->fail('Expected controller exception was not thrown.');
-        } catch (RuntimeException $exception) {
-            $this->assertSame(
-                'Temporary controller error.',
-                $exception->getMessage()
-            );
-        }
+        app(NetworkCommandProcessor::class)->process(
+            $command->id,
+            new ProcessNetworkCommand($command->id)
+        );
 
         $command->refresh();
 
-        $this->assertSame('processing', $command->status);
+        $this->assertSame('unknown', $command->status);
         $this->assertSame(1, $command->attempts);
+        $this->assertNotNull($command->executed_at);
+
         $this->assertSame(
-            'Temporary controller error.',
+            'Controller request outcome is unknown. Manual reconciliation is required.',
             $command->error_message
         );
+
+        $this->assertSame('unknown', $command->response['outcome']);
     }
 
-
-    public function test_failed_job_marks_processing_command_as_failed(): void
+    public function test_failed_job_marks_processing_command_as_unknown(): void
     {
         $fixture = $this->createFixture();
         $command = $this->createCommand($fixture, 'authorize_client');
@@ -217,13 +310,46 @@ class NetworkCommandProcessorTest extends TestCase
 
         $command->refresh();
 
-        $this->assertSame('failed', $command->status);
+        $this->assertSame('unknown', $command->status);
         $this->assertSame(3, $command->attempts);
-        $this->assertSame(
+
+        $this->assertStringContainsString(
+            'Queue worker failed after execution started.',
+            $command->error_message
+        );
+
+        $this->assertStringContainsString(
             'Maximum retries exceeded.',
             $command->error_message
         );
+
+        $this->assertSame('unknown', $command->response['outcome']);
         $this->assertNotNull($command->executed_at);
+    }
+
+    public function test_failed_job_marks_pending_command_as_failed(): void
+    {
+        $fixture = $this->createFixture();
+        $command = $this->createCommand($fixture, 'authorize_client');
+
+        $job = new ProcessNetworkCommand($command->id);
+
+        $job->failed(new RuntimeException('Queue dispatch failed.'));
+
+        $command->refresh();
+
+        $this->assertSame('failed', $command->status);
+        $this->assertSame(0, $command->attempts);
+
+        $this->assertStringContainsString(
+            'Queue job failed before network command execution:',
+            $command->error_message
+        );
+
+        $this->assertStringContainsString(
+            'Queue dispatch failed.',
+            $command->error_message
+        );
     }
 
     public function test_failed_job_does_not_change_succeeded_command(): void
@@ -249,6 +375,7 @@ class NetworkCommandProcessorTest extends TestCase
         $this->assertSame('succeeded', $command->status);
         $this->assertSame(1, $command->attempts);
         $this->assertNull($command->error_message);
+
         $this->assertEquals(
             $executedAt->toDateTimeString(),
             $command->executed_at->toDateTimeString()
@@ -263,7 +390,7 @@ class NetworkCommandProcessorTest extends TestCase
             'network_integration_id' => $fixture['integration']->id,
             'site_id' => $fixture['site']->id,
             'wifi_session_id' => $fixture['session']->id,
-            'command_uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'command_uuid' => (string) Str::uuid(),
             'command_type' => $commandType,
             'target_mac' => $fixture['session']->client_mac,
             'payload' => [
