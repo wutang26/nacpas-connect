@@ -1,3 +1,4 @@
+
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -9,6 +10,16 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            Schema::table('network_commands', function (Blueprint $table) {
+                $table->string('status', 20)
+                    ->default('pending')
+                    ->change();
+            });
+
+            return;
+        }
+
         DB::statement("
             ALTER TABLE network_commands
             MODIFY status ENUM(
@@ -29,6 +40,16 @@ return new class extends Migration
             throw new RuntimeException(
                 'Cannot rollback: network_commands contains unknown commands.'
             );
+        }
+
+        if (DB::getDriverName() === 'sqlite') {
+            Schema::table('network_commands', function (Blueprint $table) {
+                $table->string('status', 20)
+                    ->default('pending')
+                    ->change();
+            });
+
+            return;
         }
 
         DB::statement("
