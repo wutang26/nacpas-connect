@@ -55,4 +55,30 @@ class Device extends Model
 {
     return $this->hasMany(NetworkCommand::class);
 }
+
+    public function deviceManagementCredentials(): HasMany
+    {
+        return $this->hasMany(DeviceManagementCredential::class);
+    }
+
+    public function managementCapabilities(): HasMany
+    {
+        return $this->hasMany(DeviceManagementCapability::class);
+    }
+
+    public function managementCommands(): HasMany
+    {
+        return $this->hasMany(DeviceManagementCommand::class);
+    }
+
+    public function managementLogs(): HasMany
+    {
+        return $this->hasMany(DeviceManagementLog::class);
+    }
+
+    public function statusSnapshots(): HasMany
+    {
+        return $this->hasMany(DeviceStatusSnapshot::class);
+    }
+
 }

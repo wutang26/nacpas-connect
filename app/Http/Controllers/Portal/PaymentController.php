@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Payment;
 use App\Models\Site;
+use App\Models\WifiPortalContext;
 use App\Services\Payments\FastLipaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +38,17 @@ class PaymentController extends Controller
         $validated = $request->validate([
             'package_id' => ['required', 'integer', 'min:1'],
             'phone' => ['required', 'string', 'max:30'],
+            'context_token' => ['nullable', 'uuid'],
         ]);
+
+        /*
+         * Bind an Omada portal context to this browser session.
+         * The hash is calculated from Laravel's current session ID.
+         */
+        $sessionHash = hash(
+            'sha256',
+            $request->session()->getId()
+        );
 
         /*
          * Normalize Tanzanian mobile numbers.
@@ -96,7 +107,8 @@ class PaymentController extends Controller
         $result = DB::transaction(function () use (
             $site,
             $validated,
-            $phone
+            $phone,
+            $sessionHash
         ) {
             $package = $site->packages()
                 ->where('id', $validated['package_id'])
@@ -109,6 +121,32 @@ class PaymentController extends Controller
                     'package_id' =>
                         'Kifurushi hiki hakipatikani kwa sasa.',
                 ]);
+            }
+
+            /*
+             * Validate and lock the Omada portal context.
+             *
+             * A context must belong to this site and browser session,
+             * must not have expired, and must not already be attached.
+             */
+            $portalContext = null;
+
+            if (!empty($validated['context_token'])) {
+                $portalContext = WifiPortalContext::query()
+                    ->where('context_token', $validated['context_token'])
+                    ->where('site_id', $site->id)
+                    ->where('session_hash', $sessionHash)
+                    ->where('context_status', 'captured')
+                    ->where('expires_at', '>', now())
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$portalContext) {
+                    throw ValidationException::withMessages([
+                        'context_token' =>
+                            'Taarifa za kifaa hazijathibitishwa au zimekwisha muda. Tafadhali fungua upya ukurasa wa WiFi.',
+                    ]);
+                }
             }
 
             $customer = Customer::where('site_id', $site->id)
@@ -209,6 +247,18 @@ class PaymentController extends Controller
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
+
+            /*
+             * Attach the context to both records atomically.
+             * This does not authorize the WiFi client.
+             */
+            if ($portalContext) {
+                $portalContext->update([
+                    'payment_id' => $paymentId,
+                    'subscription_id' => $subscriptionId,
+                    'context_status' => 'attached',
+                ]);
+            }
 
             return [
                 'payment_id' => $paymentId,

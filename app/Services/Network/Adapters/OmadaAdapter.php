@@ -16,13 +16,16 @@ class OmadaAdapter implements NetworkAdapterInterface
     }
 
     /**
-     * Test Omada connection using the reusable session manager.
+     * Test Omada using a fresh API authentication request.
+     *
+     * Session credentials are only used internally and are never returned.
      */
     public function testConnection(
         NetworkIntegration $integration
     ): array {
         try {
-            $session = $this->sessionManager->getSession($integration);
+            // Force a new login instead of accepting an old cached session.
+            $session = $this->sessionManager->refresh($integration);
 
             if (
                 empty($session['csrf_token']) ||
@@ -42,23 +45,22 @@ class OmadaAdapter implements NetworkAdapterInterface
             return [
                 'success' => true,
                 'provider' => 'omada',
-                'message' => 'Successfully authenticated with Omada Cloud Essentials.',
+                'message' => 'Fresh authentication with the Omada API succeeded.',
                 'controller_version' => $integration->controller_version,
-                'csrf_token_received' => true,
-                'session_cookie_received' => true,
             ];
         } catch (Throwable $exception) {
             report($exception);
 
             $integration->forceFill([
                 'status' => 'error',
-                'last_error' => 'Omada authentication failed. Check the server logs.',
+                'last_error' => 'Omada authentication failed. Check the integration configuration and server logs.',
             ])->save();
 
             return [
                 'success' => false,
                 'provider' => 'omada',
-                'message' => 'Unable to authenticate with Omada. Check the integration configuration and server logs.',
+                'message' => 'Omada API authentication failed. Check the integration configuration and server logs.',
+                'controller_version' => $integration->controller_version,
             ];
         }
     }

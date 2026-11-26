@@ -67,4 +67,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(Site::class, 'created_by');
     }
+
+    public function createdDeviceManagementConnections(): HasMany
+    {
+        return $this->hasMany(DeviceManagementConnection::class, 'created_by');
+    }
+
+    public function requestedDeviceManagementCommands(): HasMany
+    {
+        return $this->hasMany(DeviceManagementCommand::class, 'requested_by');
+    }
+
+    public function deviceManagementLogs(): HasMany
+    {
+        return $this->hasMany(DeviceManagementLog::class, 'actor_id');
+    }
+
 }

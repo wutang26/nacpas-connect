@@ -62,4 +62,25 @@ public function deviceAssets(): HasMany
 {
     return $this->hasMany(DeviceAsset::class);
 }
+
+    public function deviceManagementConnections(): HasMany
+    {
+        return $this->hasMany(DeviceManagementConnection::class);
+    }
+
+    public function deviceManagementCommands(): HasMany
+    {
+        return $this->hasMany(DeviceManagementCommand::class);
+    }
+
+    public function deviceManagementLogs(): HasMany
+    {
+        return $this->hasMany(DeviceManagementLog::class);
+    }
+
+    public function deviceStatusSnapshots(): HasMany
+    {
+        return $this->hasMany(DeviceStatusSnapshot::class);
+    }
+
 }

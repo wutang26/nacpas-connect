@@ -58,7 +58,7 @@ const isValidTanzanianPhone = (value) => {
     return /^(0[67]\d{8}|\+255[67]\d{8}|255[67]\d{8})$/.test(phone);
 };
 
-export default function Index({ site, packages = [] }) {
+export default function Index({ site, packages = [],  contextToken = null, }) {
     const { platformSettings = {} } = usePage().props;
 
     const platformName = platformSettings.platform_name || 'NACPASI';
@@ -82,6 +82,7 @@ export default function Index({ site, packages = [] }) {
     } = useForm({
         package_id: '',
         phone: '',
+        context_token: contextToken || '',
     });
 
     const phone = data.phone;

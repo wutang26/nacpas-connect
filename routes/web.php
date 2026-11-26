@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\EmailConfigurationController;
 use App\Http\Controllers\Admin\HardwareDashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\DeviceAssetController;
+use App\Http\Controllers\Admin\NetworkConnectionController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -292,4 +293,26 @@ Route::middleware(['auth', 'verified'])
     });
 
 
+    /*
+|--------------------------------------------------------------------------
+| Network Connection Monitor
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware([
+    'auth',
+    'verified',
+    'permission:network.management.view',
+])
+    ->prefix('network-connections')
+    ->name('network-connections.')
+    ->controller(NetworkConnectionController::class)
+    ->group(function () {
+        Route::get('/', 'index')->name('index');
+
+        Route::post('/{integration}/test', 'test')
+            ->middleware('throttle:5,1')
+            ->name('test');
+    });
+    
 require __DIR__.'/auth.php';

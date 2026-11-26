@@ -125,6 +125,18 @@ export default function AuthenticatedLayout({ children }) {
                 ],
             }]
             : []),
+        ...(can('network.management.view')
+            ? [{
+                title: 'NETWORK MANAGEMENT',
+                items: [
+                    {
+                        label: 'Network Connections',
+                        icon: '🔌',
+                        href: '/network-connections',
+                    },
+                ],
+            }]
+            : []),
         {
             title: 'SAAS MANAGEMENT',
             items: [
