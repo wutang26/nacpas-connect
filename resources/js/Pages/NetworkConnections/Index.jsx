@@ -3,6 +3,7 @@ import { Head, Link, router, usePage, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import './NetworkConnections.css';
+import NetworkRecords from './NetworkRecords';
 
 function formatDate(value) {
     if (!value) return 'Never';
@@ -409,6 +410,7 @@ function IntegrationCard({
 export default function Index({
     integrations = [],
     canManageCredentials = false,
+    records = {},
 }) {
     const { flash = {} } = usePage().props;
     const [testingId, setTestingId] = useState(null);
@@ -540,6 +542,8 @@ export default function Index({
                         ))}
                     </div>
                 )}
+
+                <NetworkRecords records={records} />
 
                 <div className="nc-footer-note">
                     <strong>Security</strong>

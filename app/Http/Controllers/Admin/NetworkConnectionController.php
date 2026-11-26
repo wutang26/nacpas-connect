@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\NetworkCredential;
 use App\Models\NetworkIntegration;
+use App\Models\WifiSession;
+use App\Models\NetworkLog;
+use App\Models\NetworkCommand;
 use App\Services\Network\NetworkManager;
 use App\Services\Network\Omada\OmadaSessionManager;
 use Illuminate\Http\Request;
@@ -101,9 +104,156 @@ class NetworkConnectionController extends Controller
                 ];
             });
 
+        // Credentials: never select or expose the encrypted secret.
+        $credentials = NetworkCredential::query()
+            ->with(['site:id,name', 'device:id'])
+            ->latest('id')
+            ->limit(10)
+            ->get([
+                'id',
+                'site_id',
+                'device_id',
+                'provider',
+                'credential_type',
+                'username',
+                'status',
+                'created_at',
+            ])
+            ->map(fn (NetworkCredential $credential) => [
+                'id' => $credential->id,
+                'provider' => $credential->provider,
+                'credential_type' => $credential->credential_type,
+                'username' => $credential->username,
+                'status' => $credential->status,
+                'site' => $credential->site?->name,
+                'device_id' => $credential->device_id,
+                'created_at' => $credential->created_at?->toIso8601String(),
+            ]);
+
+        $commands = NetworkCommand::query()
+            ->with([
+                'integration:id,name,provider',
+                'site:id,name',
+            ])
+            ->latest('id')
+            ->limit(10)
+            ->get([
+                'id',
+                'network_integration_id',
+                'site_id',
+                'device_id',
+                'wifi_session_id',
+                'command_uuid',
+                'command_type',
+                'target_mac',
+                'status',
+                'attempts',
+                'last_attempt_at',
+                'executed_at',
+                'created_at',
+            ])
+            ->map(fn (NetworkCommand $command) => [
+                'id' => $command->id,
+                'command_uuid' => $command->command_uuid,
+                'command_type' => $command->command_type,
+                'target_mac' => $command->target_mac,
+                'status' => $command->status,
+                'attempts' => $command->attempts,
+                'site' => $command->site?->name,
+                'integration' => $command->integration?->name,
+                'device_id' => $command->device_id,
+                'wifi_session_id' => $command->wifi_session_id,
+                'last_attempt_at' => $command->last_attempt_at?->toIso8601String(),
+                'executed_at' => $command->executed_at?->toIso8601String(),
+                'created_at' => $command->created_at?->toIso8601String(),
+            ]);
+
+        $sessions = WifiSession::query()
+            ->with(['site:id,name'])
+            ->latest('id')
+            ->limit(10)
+            ->get([
+                'id',
+                'site_id',
+                'subscription_id',
+                'device_id',
+                'client_mac',
+                'client_ip',
+                'started_at',
+                'expires_at',
+                'ended_at',
+                'bytes_in',
+                'bytes_out',
+                'status',
+                'created_at',
+            ])
+            ->map(fn (WifiSession $session) => [
+                'id' => $session->id,
+                'site' => $session->site?->name,
+                'subscription_id' => $session->subscription_id,
+                'device_id' => $session->device_id,
+                'client_mac' => $session->client_mac,
+                'client_ip' => $session->client_ip,
+                'status' => $session->status,
+                'started_at' => $session->started_at?->toIso8601String(),
+                'expires_at' => $session->expires_at?->toIso8601String(),
+                'ended_at' => $session->ended_at?->toIso8601String(),
+                'bytes_in' => $session->bytes_in,
+                'bytes_out' => $session->bytes_out,
+            ]);
+
+        $logs = NetworkLog::query()
+            ->with(['site:id,name', 'device:id'])
+            ->latest('occurred_at')
+            ->limit(10)
+            ->get([
+                'id',
+                'site_id',
+                'device_id',
+                'level',
+                'event',
+                'message',
+                'occurred_at',
+            ])
+            ->map(fn (NetworkLog $log) => [
+                'id' => $log->id,
+                'site' => $log->site?->name,
+                'device_id' => $log->device_id,
+                'level' => $log->level,
+                'event' => $log->event,
+                // Do not expose the raw context JSON.
+                'message' => $log->message
+                    ? \Illuminate\Support\Str::limit(
+                        preg_replace(
+                            '/(password|secret|token|authorization)\\s*[:=]\\s*\\S+/i',
+                            '$1=[REDACTED]',
+                            $log->message
+                        ),
+                        240
+                    )
+                    : null,
+                'occurred_at' => $log->occurred_at?->toIso8601String(),
+            ]);
+
+        $records = [
+            'integrations' => $integrations->take(10)->values(),
+            'credentials' => $credentials,
+            'commands' => $commands,
+            'sessions' => $sessions,
+            'logs' => $logs,
+            'counts' => [
+                'integrations' => NetworkIntegration::count(),
+                'credentials' => NetworkCredential::count(),
+                'commands' => NetworkCommand::count(),
+                'sessions' => WifiSession::count(),
+                'logs' => NetworkLog::count(),
+            ],
+        ];
+
         return Inertia::render('NetworkConnections/Index', [
             'integrations' => $integrations,
             'canManageCredentials' => $canManageCredentials,
+            'records' => $records,
         ]);
     }
 
