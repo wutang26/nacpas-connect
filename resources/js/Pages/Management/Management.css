@@ -358,3 +358,86 @@
     .management-form-actions > * { width: 100%; }
     .management-panel-heading { align-items: flex-start; flex-direction: column; }
 }
+/* SaaS SUBSCRIPTION STATUS */
+.management-status.trialing {
+    background: #edf3ff;
+    color: #4266a5;
+}
+
+.management-status.past_due {
+    background: #fff3df;
+    color: #a66a16;
+}
+
+.management-status.cancelled {
+    background: #f1f2f1;
+    color: #737d76;
+}
+
+.management-status.expired {
+    background: #fff0e8;
+    color: #ad592b;
+}
+
+.management-status.pending {
+    background: #fff5df;
+    color: #9a701b;
+}
+
+.management-status.successful {
+    background: #e7f6ec;
+    color: #218653;
+}
+
+.management-status.failed,
+.management-status.refunded {
+    background: #fff0f0;
+    color: #b33c3c;
+}
+
+.management-muted {
+    color: #89958d;
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+.management-heading-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.subscription-price-preview {
+    min-height: 42px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding: 7px 12px;
+    border: 1px solid #dfe7e1;
+    border-radius: 6px;
+    background: #f8faf8;
+}
+
+.subscription-price-preview strong {
+    color: #218653;
+    font-size: 14px;
+}
+
+.subscription-price-preview small {
+    color: #829087;
+    font-size: 10px;
+}
+
+.management-stat-date {
+    font-size: 14px !important;
+}
+
+@media (max-width: 600px) {
+    .management-heading-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

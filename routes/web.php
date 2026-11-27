@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\NetworkConnectionController;
 use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\SiteController;
 use App\Http\Controllers\Admin\SaasPlanController;
+use App\Http\Controllers\Admin\OrganizationSubscriptionController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -437,6 +438,45 @@ Route::middleware(['auth', 'verified'])
 
         Route::put('/{saasPlan}', 'update')
             ->middleware('permission:platform.saas_plans.manage')
+            ->name('update');
+    });
+
+
+    //Saas Plan SUbsrcriptions
+    
+/*
+|--------------------------------------------------------------------------
+| SaaS Subscriptions Management
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('subscriptions')
+    ->name('subscriptions.')
+    ->controller(OrganizationSubscriptionController::class)
+    ->group(function () {
+        Route::get('/', 'index')
+            ->middleware('permission:platform.subscriptions.view')
+            ->name('index');
+
+        Route::get('/create', 'create')
+            ->middleware('permission:platform.subscriptions.manage')
+            ->name('create');
+
+        Route::post('/', 'store')
+            ->middleware('permission:platform.subscriptions.manage')
+            ->name('store');
+
+        Route::get('/{subscription}/edit', 'edit')
+            ->middleware('permission:platform.subscriptions.manage')
+            ->name('edit');
+
+        Route::get('/{subscription}', 'show')
+            ->middleware('permission:platform.subscriptions.view')
+            ->name('show');
+
+        Route::put('/{subscription}', 'update')
+            ->middleware('permission:platform.subscriptions.manage')
             ->name('update');
     });
 
