@@ -240,15 +240,85 @@ export default function AuthenticatedLayout({ children }) {
         // NETWORK MANAGEMENT
         // =====================================
 
-        ...(can('network.management.view')
+       ...(can('network.management.view')
+    ? [
+        {
+            title: 'NETWORK MANAGEMENT',
+            items: [
+                {
+                    label: 'Network Connections',
+                    icon: '🔌',
+                    href: '/network-connections',
+                },
+                {
+                    label: 'Captive Portal Sessions',
+                    icon: '📡',
+                    href: '/captive-portal-sessions',
+                },
+            ],
+        },
+    ]
+    : []),
+
+        // =====================================
+        // VOUCHER MANAGEMENT
+        // =====================================
+
+        ...(can('voucher.management.view') ||
+            can('voucher.management.manage') ||
+            can('voucher.agents.view') ||
+            can('voucher.agents.manage') ||
+            can('voucher.reports.view')
             ? [
                 {
-                    title: 'NETWORK MANAGEMENT',
+                    title: 'VOUCHER MANAGEMENT',
+                    items: [
+                        ...(can('voucher.management.view') ||
+                            can('voucher.management.manage')
+                            ? [{
+                                label: 'Voucher Batches',
+                                icon: '🎟️',
+                                href: '/vouchers/batches',
+                            }]
+                            : []),
+
+                        ...(can('voucher.agents.view') ||
+                            can('voucher.agents.manage')
+                            ? [
+                                {
+                                    label: 'Voucher Agents',
+                                    icon: '👥',
+                                    href: '/vouchers/agents',
+                                },
+                                {
+                                    label: 'Agent Purchases',
+                                    icon: '🧾',
+                                    href: '/vouchers/purchases',
+                                },
+                            ]
+                            : []),
+
+                        ...(can('voucher.reports.view')
+                            ? [{
+                                label: 'Voucher Reports',
+                                icon: '📊',
+                                href: '/vouchers/reports',
+                            }]
+                            : []),
+                    ],
+                },
+            ]
+            : []),
+
+        ...(can('voucher.agent.dashboard')
+            ? [
+                {
+                    title: 'AGENT PORTAL',
                     items: [
                         {
-                            label: 'Network Connections',
-                            icon: '🔌',
-                            href: '/network-connections',
+                            label: 'My Voucher Dashboard',
+                            icon: '🎫',
+                            href: '/voucher-agent',
                         },
                     ],
                 },

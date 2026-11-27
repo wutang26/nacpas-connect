@@ -729,3 +729,233 @@
         animation: none !important;
     }
 }
+
+
+/* =========================================
+   NACPASI VOUCHER REDEMPTION
+========================================= */
+
+.voucher-panel {
+    margin-top: 24px;
+}
+
+.voucher-heading {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.voucher-heading-icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: #e8f5ed;
+    color: #176b3a;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.voucher-heading h2 {
+    margin: 0 0 5px;
+    color: #173d2b;
+    font-size: 20px;
+    font-weight: 750;
+}
+
+.voucher-heading p {
+    margin: 0;
+    color: #718078;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.voucher-form {
+    display: flex;
+    flex-direction: column;
+    gap: 19px;
+}
+
+.voucher-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.voucher-field-group label {
+    color: #263d30;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.voucher-field-group input {
+    width: 100%;
+    min-height: 52px;
+    padding: 0 15px;
+    border: 1px solid #dce6df;
+    border-radius: 10px;
+    outline: none;
+    background: #fbfdfb;
+    color: #173d2b;
+    font-family: inherit;
+    font-size: 15px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+}
+
+.voucher-field-group input::placeholder {
+    color: #a0ada4;
+}
+
+.voucher-field-group input:focus {
+    border-color: #218653;
+    box-shadow: 0 0 0 3px rgba(33, 134, 83, 0.10);
+    background: #fff;
+}
+
+.voucher-field-group input[aria-invalid="true"] {
+    border-color: #d9534f;
+}
+
+#voucher-code {
+    font-family: monospace;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+}
+
+.voucher-field-error {
+    margin: 0;
+    color: #c0392b;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.voucher-submit-button {
+    width: 100%;
+    min-height: 53px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    background: #176b3a;
+    color: #fff;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 750;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.voucher-submit-button:hover:not(:disabled) {
+    background: #10562e;
+    transform: translateY(-1px);
+}
+
+.voucher-submit-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.voucher-submit-button span {
+    font-size: 20px;
+}
+
+.voucher-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 14px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+}
+
+.voucher-alert p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.voucher-alert-icon {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.voucher-alert-success {
+    background: #edf8f0;
+    color: #176b3a;
+    border: 1px solid #d3ead9;
+}
+
+.voucher-alert-success .voucher-alert-icon {
+    background: #d4edda;
+}
+
+.voucher-alert-warning {
+    background: #fff8e8;
+    color: #8a6415;
+    border: 1px solid #f0e1b8;
+}
+
+.voucher-alert-warning .voucher-alert-icon {
+    background: #f7e9bf;
+}
+
+.voucher-security-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    margin-top: 18px;
+    padding-top: 15px;
+    border-top: 1px solid #edf1ee;
+}
+
+.voucher-security-note span {
+    font-size: 15px;
+}
+
+.voucher-security-note p {
+    margin: 0;
+    color: #829087;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+    .voucher-panel {
+        margin-top: 18px;
+    }
+
+    .voucher-heading {
+        gap: 11px;
+    }
+
+    .voucher-heading-icon {
+        width: 43px;
+        height: 43px;
+        min-width: 43px;
+    }
+
+    .voucher-heading h2 {
+        font-size: 18px;
+    }
+
+    .voucher-field-group input {
+        min-height: 49px;
+    }
+}

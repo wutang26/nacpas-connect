@@ -21,6 +21,12 @@ use App\Http\Controllers\Admin\SiteController;
 use App\Http\Controllers\Admin\SaasPlanController;
 use App\Http\Controllers\Admin\OrganizationSubscriptionController;
 use App\Http\Controllers\Admin\SaasPaymentController;
+use App\Http\Controllers\Admin\CaptivePortalSessionController;
+use App\Http\Controllers\Admin\VoucherBatchController;
+use App\Http\Controllers\Admin\VoucherAgentController;
+use App\Http\Controllers\Admin\VoucherAgentPurchaseController;
+use App\Http\Controllers\Admin\VoucherReportController;
+use App\Http\Controllers\Agent\VoucherAgentDashboardController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -207,6 +213,13 @@ Route::prefix('portal')
             ->middleware('throttle:10,1')
             ->name('checkout');
 
+        Route::post('/{site:slug}/redeem-voucher', [
+    \App\Http\Controllers\Portal\VoucherController::class,
+    'redeem',
+])
+    ->middleware('throttle:10,1')
+    ->name('voucher.redeem');
+    
         Route::get('/{site:slug}/payment/{reference}', [
             \App\Http\Controllers\Portal\PaymentController::class,
             'pending'
@@ -501,5 +514,123 @@ Route::middleware(['auth', 'verified'])
             ->middleware('permission:platform.payments.view')
             ->name('show');
     });
+
+/*
+|--------------------------------------------------------------------------
+| Captive Portal Session Monitoring
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('captive-portal-sessions')
+    ->name('captive-portal-sessions.')
+    ->controller(CaptivePortalSessionController::class)
+    ->group(function () {
+
+        Route::get('/', 'index')
+            ->middleware('permission:network.management.view')
+            ->name('index');
+
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Voucher Batch Management
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('vouchers')
+    ->name('vouchers.')
+    ->group(function () {
+
+        Route::get('/batches', [VoucherBatchController::class, 'index'])
+            ->middleware('permission:voucher.management.view')
+            ->name('batches.index');
+
+        Route::get('/batches/create', [VoucherBatchController::class, 'create'])
+            ->middleware('permission:voucher.management.manage')
+            ->name('batches.create');
+
+        Route::post('/batches', [VoucherBatchController::class, 'store'])
+            ->middleware('permission:voucher.management.manage')
+            ->name('batches.store');
+
+        Route::get('/batches/{batch}', [VoucherBatchController::class, 'show'])
+            ->whereNumber('batch')
+            ->middleware('permission:voucher.management.view')
+            ->name('batches.show');
+
+        Route::patch('/batches/{batch}/close', [VoucherBatchController::class, 'close'])
+            ->whereNumber('batch')
+            ->middleware('permission:voucher.management.manage')
+            ->name('batches.close');
+
+        Route::get('/agents', [VoucherAgentController::class, 'index'])
+            ->middleware('permission:voucher.agents.view')
+            ->name('agents.index');
+
+        Route::post('/agents', [VoucherAgentController::class, 'store'])
+            ->middleware('permission:voucher.agents.manage')
+            ->name('agents.store');
+
+        Route::patch('/agents/{agent}', [VoucherAgentController::class, 'update'])
+            ->whereNumber('agent')
+            ->middleware('permission:voucher.agents.manage')
+            ->name('agents.update');
+
+        Route::get('/purchases', [VoucherAgentPurchaseController::class, 'index'])
+            ->middleware('permission:voucher.agents.view')
+            ->name('purchases.index');
+
+        Route::post('/purchases/{purchase}/confirm', [
+            VoucherAgentPurchaseController::class,
+            'confirm',
+        ])
+            ->whereNumber('purchase')
+            ->middleware('permission:voucher.agents.manage')
+            ->name('purchases.confirm');
+
+        Route::post('/purchases/{purchase}/cancel', [
+            VoucherAgentPurchaseController::class,
+            'cancel',
+        ])
+            ->whereNumber('purchase')
+            ->middleware('permission:voucher.agents.manage')
+            ->name('purchases.cancel');
+
+        Route::get('/reports', [VoucherReportController::class, 'index'])
+            ->middleware('permission:voucher.reports.view')
+            ->name('reports.index');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Voucher Agent Portal
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware([
+    'auth',
+    'verified',
+    'permission:voucher.agent.dashboard',
+])
+    ->prefix('voucher-agent')
+    ->name('voucher-agent.')
+    ->controller(VoucherAgentDashboardController::class)
+    ->group(function () {
+
+        Route::get('/', 'index')->name('dashboard');
+
+        Route::get('/batches', 'availableBatches')
+            ->name('batches');
+
+        Route::post('/purchases', 'requestPurchase')
+            ->middleware('throttle:10,1')
+            ->name('purchases.store');
+    });
+
 
 require __DIR__.'/auth.php';

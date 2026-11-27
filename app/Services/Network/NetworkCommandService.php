@@ -65,11 +65,23 @@ class NetworkCommandService
                     ->first();
 
                 if ($existing) {
+                    /*
+                     * Unknown means the controller may already have
+                     * processed the request. Never automatically resend it.
+                     *
+                     * Failed commands may be retried because the processor
+                     * only records uncertain external outcomes as unknown.
+                     */
                     if (in_array($existing->status, [
                         'pending',
                         'processing',
                         'succeeded',
+                        'unknown',
                     ], true)) {
+                        return [$existing, false];
+                    }
+
+                    if ($existing->status !== 'failed') {
                         return [$existing, false];
                     }
 

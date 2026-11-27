@@ -47,7 +47,6 @@ const formatSpeed = (speed) => {
         : `${speed} Kbps`;
 };
 
-// Normalize Tanzanian mobile numbers for validation.
 const normalizePhone = (value) => {
     return value.replace(/[\s\-()]/g, '');
 };
@@ -58,8 +57,24 @@ const isValidTanzanianPhone = (value) => {
     return /^(0[67]\d{8}|\+255[67]\d{8}|255[67]\d{8})$/.test(phone);
 };
 
-export default function Index({ site, packages = [],  contextToken = null, }) {
-    const { platformSettings = {} } = usePage().props;
+const isValidVoucherCode = (value) => {
+    const raw = value
+        .toUpperCase()
+        .replace(/[\s-]/g, '')
+        .replace(/^NCP/, '');
+
+    return /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{16}$/.test(raw);
+};
+
+export default function Index({
+    site,
+    packages = [],
+    contextToken = null,
+}) {
+    const {
+        platformSettings = {},
+        flash = {},
+    } = usePage().props;
 
     const platformName = platformSettings.platform_name || 'NACPASI';
     const platformTagline =
@@ -73,6 +88,7 @@ export default function Index({ site, packages = [],  contextToken = null, }) {
 
     const [selectedPackage, setSelectedPackage] = useState(null);
 
+    // Existing mobile-money checkout form. Keep this separate from vouchers.
     const {
         data,
         setData,
@@ -85,6 +101,19 @@ export default function Index({ site, packages = [],  contextToken = null, }) {
         context_token: contextToken || '',
     });
 
+    // Independent voucher redemption form.
+    const {
+        data: voucherData,
+        setData: setVoucherData,
+        post: postVoucher,
+        processing: voucherProcessing,
+        errors: voucherErrors,
+    } = useForm({
+        voucher_code: '',
+        phone: '',
+        context_token: contextToken || '',
+    });
+
     const phone = data.phone;
 
     const selected = packages.find(
@@ -92,6 +121,14 @@ export default function Index({ site, packages = [],  contextToken = null, }) {
     );
 
     const validPhone = isValidTanzanianPhone(phone);
+
+    const voucherPhoneValid = isValidTanzanianPhone(
+        voucherData.phone
+    );
+
+    const voucherCodeValid = isValidVoucherCode(
+        voucherData.voucher_code
+    );
 
     const handlePackageSelection = (packageId) => {
         setSelectedPackage(packageId);
@@ -105,16 +142,44 @@ export default function Index({ site, packages = [],  contextToken = null, }) {
     const handleCheckout = (event) => {
         event.preventDefault();
 
-        if (!selected) {
-            return;
-        }
-
-        if (!validPhone) {
+        if (!selected || !validPhone) {
             return;
         }
 
         post(`/portal/${site.slug}/checkout`, {
             preserveScroll: true,
+        });
+    };
+
+    const handleVoucherCodeChange = (event) => {
+        setVoucherData(
+            'voucher_code',
+            event.target.value.toUpperCase()
+        );
+    };
+
+    const handleVoucherPhoneChange = (event) => {
+        setVoucherData('phone', event.target.value);
+    };
+
+    const handleVoucherRedemption = (event) => {
+        event.preventDefault();
+
+        if (
+            !contextToken ||
+            !voucherCodeValid ||
+            !voucherPhoneValid ||
+            voucherProcessing
+        ) {
+            return;
+        }
+
+        postVoucher(`/portal/${site.slug}/redeem-voucher`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setVoucherData('voucher_code', '');
+                setVoucherData('phone', '');
+            },
         });
     };
 
@@ -324,13 +389,13 @@ export default function Index({ site, packages = [],  contextToken = null, }) {
 
                     </section>
 
-                    {/* CUSTOMER DETAILS */}
+                    {/* MOBILE MONEY CHECKOUT */}
                     <section className="portal-panel checkout-panel">
 
                         <div className="panel-heading">
                             <div>
-                                <h2>Maelezo yako</h2>
-                                <p>Ingiza namba yako ya simu</p>
+                                <h2>Nunua kifurushi</h2>
+                                <p>Lipa kwa simu kupitia mobile money</p>
                             </div>
                         </div>
 
@@ -419,6 +484,148 @@ export default function Index({ site, packages = [],  contextToken = null, }) {
                             zitakazokatwa na internet haitawashwa mpaka
                             malipo halisi na Omada viunganishwe.
                         </p>
+
+                    </section>
+
+                    {/* VOUCHER REDEMPTION */}
+                    <section className="portal-panel voucher-panel">
+
+                        <div className="voucher-heading">
+                            <div className="voucher-heading-icon">
+                                <span>✓</span>
+                            </div>
+
+                            <div>
+                                <h2>Una Voucher?</h2>
+                                <p>
+                                    Ingiza code yako ili kutumia kifurushi
+                                    ulicho nacho.
+                                </p>
+                            </div>
+                        </div>
+
+                        {flash?.success && (
+                            <div className="voucher-alert voucher-alert-success" role="status">
+                                <span className="voucher-alert-icon">✓</span>
+                                <p>{flash.success}</p>
+                            </div>
+                        )}
+
+                        {!contextToken && (
+                            <div className="voucher-alert voucher-alert-warning" role="alert">
+                                <span className="voucher-alert-icon">!</span>
+                                <p>
+                                    Taarifa za kifaa hazijapatikana. Tafadhali
+                                    fungua upya ukurasa huu kupitia mtandao wa WiFi.
+                                </p>
+                            </div>
+                        )}
+
+                        <form
+                            className="voucher-form"
+                            onSubmit={handleVoucherRedemption}
+                        >
+
+                            <div className="voucher-field-group">
+                                <label htmlFor="voucher-code">
+                                    Voucher Code
+                                </label>
+
+                                <input
+                                    id="voucher-code"
+                                    type="text"
+                                    name="voucher_code"
+                                    placeholder="NCP-XXXX-XXXX-XXXX-XXXX"
+                                    autoComplete="off"
+                                    spellCheck="false"
+                                    maxLength={40}
+                                    value={voucherData.voucher_code}
+                                    onChange={handleVoucherCodeChange}
+                                    disabled={voucherProcessing}
+                                    aria-invalid={Boolean(voucherErrors.voucher_code)}
+                                />
+
+                                {voucherData.voucher_code.length > 0 &&
+                                    !voucherCodeValid && (
+                                        <p className="voucher-field-error">
+                                            Ingiza voucher code yenye herufi na
+                                            namba 16 baada ya NCP.
+                                        </p>
+                                    )}
+
+                                {voucherErrors.voucher_code && (
+                                    <p className="voucher-field-error">
+                                        {voucherErrors.voucher_code}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="voucher-field-group">
+                                <label htmlFor="voucher-phone">
+                                    Namba ya simu
+                                </label>
+
+                                <input
+                                    id="voucher-phone"
+                                    type="tel"
+                                    name="phone"
+                                    inputMode="tel"
+                                    autoComplete="tel"
+                                    placeholder="0712 345 678"
+                                    value={voucherData.phone}
+                                    onChange={handleVoucherPhoneChange}
+                                    disabled={voucherProcessing}
+                                    aria-invalid={Boolean(voucherErrors.phone)}
+                                />
+
+                                {voucherData.phone.length > 0 &&
+                                    !voucherPhoneValid && (
+                                        <p className="voucher-field-error">
+                                            Ingiza namba sahihi ya Tanzania.
+                                            Mfano: 0712345678.
+                                        </p>
+                                    )}
+
+                                {voucherErrors.phone && (
+                                    <p className="voucher-field-error">
+                                        {voucherErrors.phone}
+                                    </p>
+                                )}
+                            </div>
+
+                            <input
+                                type="hidden"
+                                name="context_token"
+                                value={voucherData.context_token}
+                            />
+
+                            <button
+                                type="submit"
+                                className="voucher-submit-button"
+                                disabled={
+                                    !contextToken ||
+                                    !voucherCodeValid ||
+                                    !voucherPhoneValid ||
+                                    voucherProcessing
+                                }
+                            >
+                                {voucherProcessing
+                                    ? 'Inathibitisha Voucher...'
+                                    : 'Tumia Voucher'}
+
+                                {!voucherProcessing && <span>→</span>}
+                            </button>
+
+                        </form>
+
+                        <div className="voucher-security-note">
+                            <span>🔒</span>
+                            <p>
+                                Voucher inathibitishwa na mfumo kabla ya
+                                kifurushi kuanzishwa. Usimpe mtu mwingine
+                                voucher code yako.
+                            </p>
+                        </div>
 
                     </section>
 
