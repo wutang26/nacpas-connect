@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\OrganizationSubscriptionController;
 use App\Http\Controllers\Admin\SaasPaymentController;
 use App\Http\Controllers\Admin\CaptivePortalSessionController;
 use App\Http\Controllers\Admin\VoucherBatchController;
+use App\Http\Controllers\VoucherPrintController;
 use App\Http\Controllers\Admin\VoucherAgentController;
 use App\Http\Controllers\Admin\VoucherAgentPurchaseController;
 use App\Http\Controllers\Admin\VoucherReportController;
@@ -247,6 +248,7 @@ Route::middleware([
     ->controller(HardwareDashboardController::class)
     ->group(function () {
         Route::get('/', 'index')->name('dashboard');
+
     });
 
 
@@ -567,6 +569,11 @@ Route::middleware(['auth', 'verified'])
             ->middleware('permission:voucher.management.view')
             ->name('batches.show');
 
+        Route::get('/batches/{batch}/print', [VoucherPrintController::class, 'batch'])
+            ->whereNumber('batch')
+            ->middleware('permission:voucher.management.view')
+            ->name('batches.print');
+
         Route::patch('/batches/{batch}/close', [VoucherBatchController::class, 'close'])
             ->whereNumber('batch')
             ->middleware('permission:voucher.management.manage')
@@ -628,6 +635,9 @@ Route::middleware([
     ->group(function () {
 
         Route::get('/', 'index')->name('dashboard');
+
+        Route::get('/print', [VoucherPrintController::class, 'agent'])
+            ->name('print');
 
         Route::get('/batches', 'availableBatches')
             ->name('batches');
