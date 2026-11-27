@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\VoucherBatchController;
 use App\Http\Controllers\Admin\VoucherAgentController;
 use App\Http\Controllers\Admin\VoucherAgentPurchaseController;
 use App\Http\Controllers\Admin\VoucherReportController;
+use App\Http\Controllers\Admin\VoucherDashboardController;
 use App\Http\Controllers\Agent\VoucherAgentDashboardController;
 use Inertia\Inertia;
 
@@ -544,6 +545,10 @@ Route::middleware(['auth', 'verified'])
     ->prefix('vouchers')
     ->name('vouchers.')
     ->group(function () {
+
+        Route::get('/dashboard', [VoucherDashboardController::class, 'index'])
+            ->middleware('role:super_admin')
+            ->name('dashboard');
 
         Route::get('/batches', [VoucherBatchController::class, 'index'])
             ->middleware('permission:voucher.management.view')

@@ -273,6 +273,14 @@ export default function AuthenticatedLayout({ children }) {
                 {
                     title: 'VOUCHER MANAGEMENT',
                     items: [
+                        ...(isSuperAdmin
+                            ? [{
+                                label: 'Voucher Dashboard',
+                                icon: '📊',
+                                href: '/vouchers/dashboard',
+                            }]
+                            : []),
+
                         ...(can('voucher.management.view') ||
                             can('voucher.management.manage')
                             ? [{
@@ -310,7 +318,7 @@ export default function AuthenticatedLayout({ children }) {
             ]
             : []),
 
-        ...(can('voucher.agent.dashboard')
+        ...(!isSuperAdmin && can('voucher.agent.dashboard')
             ? [
                 {
                     title: 'AGENT PORTAL',

@@ -16,21 +16,27 @@ use Inertia\Response;
 
 class VoucherAgentDashboardController extends Controller
 {
-    private function agent(Request $request): VoucherAgent
-    {
-        $agent = VoucherAgent::query()
-            ->with(['site:id,name,code'])
-            ->where('user_id', $request->user()->id)
-            ->firstOrFail();
+        private function agent(Request $request): VoucherAgent
+        {
+            $agent = VoucherAgent::query()
+                ->with(['site:id,name,code'])
+                ->where('user_id', $request->user()->id)
+                ->first();
 
-        abort_if(
-            $agent->status !== 'active',
-            403,
-            'Akaunti yako ya uwakala imesimamishwa. Wasiliana na msimamizi.'
-        );
+            abort_if(
+                !$agent,
+                403,
+                'Akaunti yako haijasajiliwa kama wakala wa NACPASI.'
+            );
 
-        return $agent;
-    }
+            abort_if(
+                $agent->status !== 'active',
+                403,
+                'Akaunti yako ya uwakala imesimamishwa. Wasiliana na msimamizi.'
+            );
+
+            return $agent;
+        }
 
     public function index(Request $request): Response
     {

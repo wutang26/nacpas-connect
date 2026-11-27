@@ -74,7 +74,7 @@ class VoucherReportController extends Controller
                 'wholesale_revenue' => (clone $purchases)
                     ->where('status', 'paid')->sum('total_amount'),
                 'redemption_retail_value' => VoucherRedemption::query()
-                    ->whereIn('site_id', $siteIds)
+                    ->whereIn('voucher_redemptions.site_id', $siteIds)
                     ->join('vouchers', 'vouchers.id', '=', 'voucher_redemptions.voucher_id')
                     ->sum('vouchers.retail_price'),
                 'agents' => VoucherAgent::query()
