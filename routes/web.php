@@ -16,6 +16,8 @@ use App\Http\Controllers\Admin\HardwareDashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\DeviceAssetController;
 use App\Http\Controllers\Admin\NetworkConnectionController;
+use App\Http\Controllers\Admin\OrganizationController;
+use App\Http\Controllers\Admin\SiteController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -325,6 +327,79 @@ Route::middleware([
                 'throttle:5,1',
             ])
             ->name('settings.update');
+    });
+
+/*
+|--------------------------------------------------------------------------
+| Organization Management
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('organizations')
+    ->name('organizations.')
+    ->controller(OrganizationController::class)
+    ->group(function () {
+        Route::get('/', 'index')
+            ->middleware('permission:platform.organizations.view')
+            ->name('index');
+
+        Route::get('/create', 'create')
+            ->middleware('permission:platform.organizations.create')
+            ->name('create');
+
+        Route::post('/', 'store')
+            ->middleware('permission:platform.organizations.create')
+            ->name('store');
+
+        Route::get('/{organization}/edit', 'edit')
+            ->middleware('permission:platform.organizations.update')
+            ->name('edit');
+
+        Route::get('/{organization}', 'show')
+            ->middleware('permission:platform.organizations.view')
+            ->name('show');
+
+        Route::put('/{organization}', 'update')
+            ->middleware('permission:platform.organizations.update')
+            ->name('update');
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| Site Management
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('sites')
+    ->name('sites.')
+    ->controller(SiteController::class)
+    ->group(function () {
+        Route::get('/', 'index')
+            ->middleware('permission:platform.sites.view')
+            ->name('index');
+
+        Route::get('/create', 'create')
+            ->middleware('permission:platform.sites.create')
+            ->name('create');
+
+        Route::post('/', 'store')
+            ->middleware('permission:platform.sites.create')
+            ->name('store');
+
+        Route::get('/{site}/edit', 'edit')
+            ->middleware('permission:platform.sites.update')
+            ->name('edit');
+
+        Route::get('/{site}', 'show')
+            ->middleware('permission:platform.sites.view')
+            ->name('show');
+
+        Route::put('/{site}', 'update')
+            ->middleware('permission:platform.sites.update')
+            ->name('update');
     });
 
 require __DIR__.'/auth.php';

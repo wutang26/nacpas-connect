@@ -1,0 +1,360 @@
+.management-page {
+    max-width: 1500px;
+    margin: 0 auto;
+    color: #26372d;
+}
+.management-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 24px;
+}
+.management-heading h1 {
+    margin: 0 0 7px;
+    color: #1b3527;
+    font-size: 23px;
+    font-weight: 750;
+}
+.management-heading p {
+    margin: 0;
+    color: #859189;
+    font-size: 13px;
+}
+.management-primary, .management-submit {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 17px;
+    border: 1px solid #218653;
+    border-radius: 7px;
+    background: #218653;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+}
+.management-primary:hover, .management-submit:hover {
+    background: #176c40;
+    color: white;
+}
+.management-secondary {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 42px;
+    padding: 0 17px;
+    border: 1px solid #dfe7e1;
+    border-radius: 7px;
+    background: white;
+    color: #58685e;
+    font-size: 12px;
+    font-weight: 650;
+    text-decoration: none;
+    cursor: pointer;
+}
+.management-alert {
+    padding: 13px 16px;
+    margin-bottom: 18px;
+    border-radius: 7px;
+    font-size: 12px;
+}
+.management-alert.success {
+    color: #216b40;
+    background: #eaf6ee;
+    border: 1px solid #d5ebdc;
+}
+.management-alert.error {
+    color: #a33a3a;
+    background: #fff0f0;
+    border: 1px solid #f3dada;
+}
+.management-stats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 15px;
+    margin-bottom: 21px;
+}
+.management-stat, .management-panel {
+    background: #fff;
+    border: 1px solid #e9eeeb;
+    border-radius: 9px;
+}
+.management-stat {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 18px;
+}
+.management-stat-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 9px;
+    background: #edf5ef;
+    color: #287c4c;
+    font-size: 18px;
+}
+.management-stat span {
+    display: block;
+    margin-bottom: 5px;
+    color: #829087;
+    font-size: 11px;
+}
+.management-stat strong {
+    color: #1b442d;
+    font-size: 22px;
+}
+.management-panel {
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+.management-panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 19px 20px;
+    border-bottom: 1px solid #edf0ee;
+}
+.management-panel-heading h3 {
+    margin: 0 0 5px;
+    color: #254332;
+    font-size: 14px;
+}
+.management-panel-heading p {
+    margin: 0;
+    color: #97a29b;
+    font-size: 11px;
+}
+.management-count {
+    padding: 7px 10px;
+    border-radius: 5px;
+    background: #edf5ef;
+    color: #267c4c;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.management-filters {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 17px 20px;
+    border-bottom: 1px solid #edf0ee;
+}
+.management-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+.management-field.grow {
+    flex: 1 1 230px;
+}
+.management-field label {
+    color: #43564a;
+    font-size: 12px;
+    font-weight: 650;
+}
+.management-field input, .management-field select,
+.management-field textarea {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid #dfe7e1;
+    border-radius: 6px;
+    background: white;
+    color: #35463b;
+    font-family: inherit;
+    font-size: 12px;
+    outline: none;
+}
+.management-field textarea {
+    min-height: 90px;
+    resize: vertical;
+}
+.management-field input:focus, .management-field select:focus,
+.management-field textarea:focus {
+    border-color: #369766;
+    box-shadow: 0 0 0 3px rgba(54,151,102,.09);
+}
+.management-field small, .management-error {
+    color: #b33c3c;
+    font-size: 11px;
+}
+.management-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+}
+.management-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: collapse;
+    text-align: left;
+}
+.management-table th {
+    padding: 13px 15px;
+    background: #f8faf8;
+    color: #718077;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.management-table td {
+    padding: 14px 15px;
+    border-top: 1px solid #eff2f0;
+    color: #536258;
+    font-size: 11px;
+    vertical-align: middle;
+}
+.management-table tbody tr:hover {
+    background: #fbfdfb;
+}
+.management-table a, .management-link {
+    color: #218653;
+    font-weight: 700;
+    text-decoration: none;
+}
+.management-table a:hover, .management-link:hover {
+    text-decoration: underline;
+}
+.management-status {
+    display: inline-flex;
+    padding: 5px 9px;
+    border-radius: 20px;
+    background: #edf5ef;
+    color: #267c4c;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: capitalize;
+}
+.management-status.inactive {
+    background: #f1f2f1;
+    color: #778179;
+}
+.management-status.suspended {
+    background: #fff0e8;
+    color: #ad592b;
+}
+.management-empty {
+    padding: 38px 20px;
+    color: #87938b;
+    text-align: center;
+    font-size: 12px;
+}
+.management-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 20px;
+    border-top: 1px solid #edf0ee;
+    color: #829087;
+    font-size: 11px;
+}
+.management-pagination-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+.management-pagination a, .management-pagination span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    min-height: 30px;
+    padding: 0 8px;
+    border: 1px solid #e3eae5;
+    border-radius: 5px;
+    color: #52675a;
+    text-decoration: none;
+}
+.management-pagination .current {
+    border-color: #218653;
+    background: #218653;
+    color: white;
+}
+.management-pagination .disabled {
+    opacity: .4;
+}
+.management-form {
+    padding: 20px;
+}
+.management-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 17px;
+}
+.management-form-section {
+    grid-column: 1 / -1;
+    padding-bottom: 12px;
+    margin-top: 5px;
+    border-bottom: 1px solid #edf0ee;
+    color: #254332;
+    font-size: 13px;
+    font-weight: 750;
+}
+.management-field.full {
+    grid-column: 1 / -1;
+}
+.management-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 20px;
+}
+.management-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 13px;
+    padding: 20px;
+}
+.management-detail {
+    padding: 14px;
+    border: 1px solid #edf0ee;
+    border-radius: 7px;
+    min-width: 0;
+}
+.management-detail span {
+    display: block;
+    margin-bottom: 7px;
+    color: #829087;
+    font-size: 10px;
+}
+.management-detail strong {
+    display: block;
+    color: #294635;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+.management-inline-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+@media (max-width: 900px) {
+    .management-stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .management-detail-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media (max-width: 600px) {
+    .management-heading { align-items: flex-start; flex-direction: column; }
+    .management-heading h1 { font-size: 20px; }
+    .management-primary { width: 100%; }
+    .management-stats, .management-detail-grid { grid-template-columns: 1fr; }
+    .management-filters { align-items: stretch; flex-direction: column; }
+    .management-filters > * { width: 100%; }
+    .management-form { padding: 15px; }
+    .management-form-grid { grid-template-columns: 1fr; }
+    .management-field.full, .management-form-section { grid-column: auto; }
+    .management-form-actions { flex-direction: column-reverse; }
+    .management-form-actions > * { width: 100%; }
+    .management-panel-heading { align-items: flex-start; flex-direction: column; }
+}

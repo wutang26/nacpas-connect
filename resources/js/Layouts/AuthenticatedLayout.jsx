@@ -165,16 +165,20 @@ export default function AuthenticatedLayout({ children }) {
                     icon: '▦',
                     href: '/dashboard',
                 },
-                {
-                    label: 'Organizations',
-                    icon: '🏢',
-                    href: '/organizations',
-                },
-                {
-                    label: 'Sites',
-                    icon: '📍',
-                    href: '/sites',
-                },
+                ...(can('platform.organizations.view')
+                    ? [{
+                        label: 'Organizations',
+                        icon: '🏢',
+                        href: '/organizations',
+                    }]
+                    : []),
+                ...(can('platform.sites.view')
+                    ? [{
+                        label: 'Sites',
+                        icon: '📍',
+                        href: '/sites',
+                    }]
+                    : []),
                 {
                     label: 'WiFi Packages',
                     icon: '📶',
