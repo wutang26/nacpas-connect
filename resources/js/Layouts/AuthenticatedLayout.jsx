@@ -1,5 +1,6 @@
+
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './AuthenticatedLayout.css';
 
 export default function AuthenticatedLayout({ children }) {
@@ -18,6 +19,13 @@ export default function AuthenticatedLayout({ children }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+    const userMenuRef = useRef(null);
+
+    // =========================================
+    // USER ROLES & PERMISSIONS
+    // =========================================
 
     const userRoles = Array.isArray(user?.roles)
         ? user.roles
@@ -49,18 +57,104 @@ export default function AuthenticatedLayout({ children }) {
         can('platform.settings.view') ||
         can('platform.settings.manage');
 
+    // =========================================
+    // USER ROLE DISPLAY
+    // =========================================
+
     const userRole = userRoles.includes('super_admin')
         ? 'Super Administrator'
         : userRoles.includes('admin')
             ? 'Administrator'
-            : userRoles.includes('owner')
-                ? 'Organization Owner'
-                : userRoles.includes('manager')
-                    ? 'Manager'
-                    : userRoles.length > 0
-                        ? userRoles[0].replaceAll('_', ' ')
-                            .replace(/\b\w/g, (char) => char.toUpperCase())
-                        : 'Platform User';
+            : userRoles.includes('organization_manager')
+                ? 'Organization Manager'
+                : userRoles.includes('site_manager')
+                    ? 'Site Manager'
+                    : userRoles.includes('support_agent')
+                        ? 'Support Agent'
+                        : userRoles.includes('accountant')
+                            ? 'Accountant'
+                            : userRoles.length > 0
+                                ? userRoles[0]
+                                    .replaceAll('_', ' ')
+                                    .replace(/\b\w/g, (char) =>
+                                        char.toUpperCase()
+                                    )
+                                : 'Platform User';
+
+    // =========================================
+    // USER AVATAR INITIALS
+    // =========================================
+
+    const userInitials = (user?.name || 'Administrator')
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join('');
+
+    // =========================================
+    // USER DROPDOWN - OUTSIDE CLICK & ESCAPE
+    // =========================================
+
+    useEffect(() => {
+        const handleOutsideClick = (event) => {
+            if (
+                userMenuRef.current &&
+                !userMenuRef.current.contains(event.target)
+            ) {
+                setUserMenuOpen(false);
+            }
+        };
+
+        const handleEscape = (event) => {
+            if (event.key === 'Escape') {
+                setUserMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleOutsideClick);
+        document.addEventListener('touchstart', handleOutsideClick);
+        document.addEventListener('keydown', handleEscape);
+
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideClick);
+            document.removeEventListener('touchstart', handleOutsideClick);
+            document.removeEventListener('keydown', handleEscape);
+        };
+    }, []);
+
+    // =========================================
+    // ACCOUNT MENU ITEMS
+    // =========================================
+
+    const accountMenuItems = [
+        {
+            label: 'My Profile',
+            description: 'Personal information',
+            icon: '👤',
+            href: '/profile',
+        },
+        {
+            label: 'Change Password',
+            description: 'Update your password',
+            icon: '🔒',
+            href: '/profile#password',
+        },
+        ...(canViewSettings
+            ? [
+                {
+                    label: 'Account Settings',
+                    description: 'Platform configuration',
+                    icon: '⚙️',
+                    href: '/settings',
+                },
+            ]
+            : []),
+    ];
+
+    // =========================================
+    // MAIN SIDEBAR MENU
+    // =========================================
 
     const menuGroups = [
         {
@@ -98,45 +192,57 @@ export default function AuthenticatedLayout({ children }) {
                 },
             ],
         },
+
         ...(can('hardware.dashboard.view')
-            ? [{
-                title: 'HARDWARE MANAGEMENT',
-                items: [
-                    {
-                        label: 'Hardware Dashboard',
-                        icon: '🖥️',
-                        href: '/hardware',
-                    },
-                    ...(can('hardware.products.view')
-                        ? [{
-                            label: 'Products Catalogue',
-                            icon: '📦',
-                            href: '/hardware/products',
-                        }]
-                        : []),
+            ? [
+                {
+                    title: 'HARDWARE MANAGEMENT',
+                    items: [
+                        {
+                            label: 'Hardware Dashboard',
+                            icon: '🖥️',
+                            href: '/hardware',
+                        },
+
+                        ...(can('hardware.products.view')
+                            ? [
+                                {
+                                    label: 'Products Catalogue',
+                                    icon: '📦',
+                                    href: '/hardware/products',
+                                },
+                            ]
+                            : []),
 
                         ...(can('hardware.inventory.view')
-                    ? [{
-                        label: 'Device Asset Tracking',
-                        icon: '🔖',
-                        href: '/hardware/assets',
-                    }]
-                    : []),
-                ],
-            }]
+                            ? [
+                                {
+                                    label: 'Device Asset Tracking',
+                                    icon: '🔖',
+                                    href: '/hardware/assets',
+                                },
+                            ]
+                            : []),
+                    ],
+                },
+            ]
             : []),
+
         ...(can('network.management.view')
-            ? [{
-                title: 'NETWORK MANAGEMENT',
-                items: [
-                    {
-                        label: 'Network Connections',
-                        icon: '🔌',
-                        href: '/network-connections',
-                    },
-                ],
-            }]
+            ? [
+                {
+                    title: 'NETWORK MANAGEMENT',
+                    items: [
+                        {
+                            label: 'Network Connections',
+                            icon: '🔌',
+                            href: '/network-connections',
+                        },
+                    ],
+                },
+            ]
             : []),
+
         {
             title: 'SAAS MANAGEMENT',
             items: [
@@ -157,6 +263,7 @@ export default function AuthenticatedLayout({ children }) {
                 },
             ],
         },
+
         {
             title: 'REPORTS & SETTINGS',
             items: [
@@ -169,29 +276,39 @@ export default function AuthenticatedLayout({ children }) {
         },
     ];
 
+    // =========================================
+    // SETTINGS SUBMENU
+    // =========================================
+
     const settingsItems = [
         ...(canViewRoles
-            ? [{
-                label: 'Roles & Permissions',
-                icon: '🛡️',
-                href: '/roles',
-            }]
+            ? [
+                {
+                    label: 'Roles & Permissions',
+                    icon: '🛡️',
+                    href: '/roles',
+                },
+            ]
             : []),
 
         ...(canViewPermissions
-            ? [{
-                label: 'Permissions Management',
-                icon: '🔐',
-                href: '/permissions',
-            }]
+            ? [
+                {
+                    label: 'Permissions Management',
+                    icon: '🔐',
+                    href: '/permissions',
+                },
+            ]
             : []),
 
         ...(canViewUsers
-            ? [{
-                label: 'User Management',
-                icon: '👥',
-                href: '/users',
-            }]
+            ? [
+                {
+                    label: 'User Management',
+                    icon: '👥',
+                    href: '/users',
+                },
+            ]
             : []),
 
         ...(canViewSettings
@@ -210,23 +327,37 @@ export default function AuthenticatedLayout({ children }) {
             : []),
     ];
 
+    // =========================================
+    // ACTIVE ROUTE DETECTION
+    // =========================================
+
     const isActive = (href) => {
-        const currentPath = url.split('?')[0].replace(/\/+$/, '') || '/';
+        const currentPath =
+            url.split('?')[0].replace(/\/+$/, '') || '/';
 
         if (href === '/dashboard') {
             return currentPath === '/dashboard';
         }
 
-        return currentPath === href ||
-            currentPath.startsWith(`${href}/`);
+        return (
+            currentPath === href ||
+            currentPath.startsWith(`${href}/`)
+        );
     };
 
     const settingsActive = settingsItems.some(
         (item) => isActive(item.href)
     );
 
+    // =========================================
+    // RENDER
+    // =========================================
+
     return (
         <div className="nac-layout">
+
+            {/* MOBILE SIDEBAR OVERLAY */}
+
             {sidebarOpen && (
                 <div
                     className="sidebar-overlay"
@@ -234,12 +365,19 @@ export default function AuthenticatedLayout({ children }) {
                 />
             )}
 
+            {/* =================================
+                SIDEBAR
+            ================================= */}
+
             <aside
                 className={`nac-sidebar ${
                     sidebarCollapsed ? 'collapsed' : ''
                 } ${sidebarOpen ? 'mobile-open' : ''}`}
             >
+                {/* BRAND */}
+
                 <div className="sidebar-brand">
+
                     <div className="brand-logo">N</div>
 
                     {!sidebarCollapsed && (
@@ -259,9 +397,15 @@ export default function AuthenticatedLayout({ children }) {
                     </button>
                 </div>
 
+                {/* SIDEBAR NAVIGATION */}
+
                 <div className="sidebar-menu">
+
                     {menuGroups.map((group) => (
-                        <div className="menu-group" key={group.title}>
+                        <div
+                            className="menu-group"
+                            key={group.title}
+                        >
                             {!sidebarCollapsed && (
                                 <div className="menu-group-title">
                                     {group.title}
@@ -301,8 +445,11 @@ export default function AuthenticatedLayout({ children }) {
                         </div>
                     ))}
 
+                    {/* SETTINGS */}
+
                     {settingsItems.length > 0 && (
                         <div className="menu-group settings-menu-group">
+
                             {!sidebarCollapsed && (
                                 <div className="menu-group-title">
                                     SETTINGS
@@ -315,7 +462,9 @@ export default function AuthenticatedLayout({ children }) {
                                     settingsActive ? 'active' : ''
                                 }`}
                                 onClick={() => {
-                                    setSettingsOpen((previous) => !previous);
+                                    setSettingsOpen(
+                                        (previous) => !previous
+                                    );
                                 }}
                                 title={
                                     sidebarCollapsed
@@ -339,6 +488,7 @@ export default function AuthenticatedLayout({ children }) {
 
                             {settingsOpen && !sidebarCollapsed && (
                                 <div className="settings-submenu">
+
                                     {settingsItems.map((item) => {
                                         const active = isActive(item.href);
 
@@ -366,6 +516,7 @@ export default function AuthenticatedLayout({ children }) {
 
                             {sidebarCollapsed && settingsOpen && (
                                 <div className="settings-collapsed-links">
+
                                     {settingsItems.map((item) => (
                                         <Link
                                             key={item.href}
@@ -375,7 +526,9 @@ export default function AuthenticatedLayout({ children }) {
                                                 setSidebarOpen(false);
                                             }}
                                             className={`sidebar-link ${
-                                                isActive(item.href) ? 'active' : ''
+                                                isActive(item.href)
+                                                    ? 'active'
+                                                    : ''
                                             }`}
                                         >
                                             <span className="menu-icon">
@@ -389,14 +542,19 @@ export default function AuthenticatedLayout({ children }) {
                     )}
                 </div>
 
+                {/* SIDEBAR BOTTOM */}
+
                 <div className="sidebar-bottom">
+
                     <div className="sidebar-user">
+
                         <div className="user-avatar">
-                            {user?.name?.charAt(0)?.toUpperCase() || 'A'}
+                            {userInitials || 'A'}
                         </div>
 
                         {!sidebarCollapsed && (
                             <div className="user-info">
+
                                 <strong>
                                     {user?.name || 'Administrator'}
                                 </strong>
@@ -432,9 +590,18 @@ export default function AuthenticatedLayout({ children }) {
                 </div>
             </aside>
 
+            {/* =================================
+                MAIN CONTENT
+            ================================= */}
+
             <div className="nac-main">
+
+                {/* TOP HEADER */}
+
                 <header className="nac-header">
+
                     <div className="header-left">
+
                         <button
                             type="button"
                             className="mobile-menu-button"
@@ -448,7 +615,9 @@ export default function AuthenticatedLayout({ children }) {
                             type="button"
                             className="collapse-button"
                             onClick={() =>
-                                setSidebarCollapsed((previous) => !previous)
+                                setSidebarCollapsed(
+                                    (previous) => !previous
+                                )
                             }
                             title="Toggle sidebar"
                             aria-label="Toggle sidebar"
@@ -457,6 +626,7 @@ export default function AuthenticatedLayout({ children }) {
                         </button>
 
                         <div className="header-title">
+
                             <strong>Platform Administration</strong>
 
                             <span>
@@ -465,38 +635,175 @@ export default function AuthenticatedLayout({ children }) {
                         </div>
                     </div>
 
+                    {/* =================================
+                        HEADER RIGHT / USER DROPDOWN
+                    ================================= */}
+
                     <div className="header-right">
+
                         <div className="header-status">
                             <span className="status-dot"></span>
-                            Platform Online
+                            <span>Platform Online</span>
                         </div>
 
-                        <div className="header-user">
-                            <div className="header-avatar">
-                                {user?.name?.charAt(0)?.toUpperCase() || 'A'}
-                            </div>
+                        <div
+                            className="header-account"
+                            ref={userMenuRef}
+                        >
+                            {/* ACCOUNT TRIGGER */}
 
-                            <div>
-                                <strong>
-                                    {user?.name || 'Administrator'}
-                                </strong>
+                            <button
+                                type="button"
+                                className={`header-account-trigger ${
+                                    userMenuOpen ? 'active' : ''
+                                }`}
+                                onClick={() =>
+                                    setUserMenuOpen(
+                                        (previous) => !previous
+                                    )
+                                }
+                                aria-expanded={userMenuOpen}
+                                aria-haspopup="menu"
+                                aria-label="Open user account menu"
+                            >
+                                <div className="header-avatar">
+                                    {userInitials || 'A'}
+                                </div>
 
-                                <span>{userRole}</span>
-                            </div>
+                                <div className="header-account-info">
+
+                                    <strong>
+                                        {user?.name || 'Administrator'}
+                                    </strong>
+
+                                    <span>{userRole}</span>
+                                </div>
+
+                                <span
+                                    className={`account-chevron ${
+                                        userMenuOpen ? 'rotated' : ''
+                                    }`}
+                                >
+                                    ▾
+                                </span>
+                            </button>
+
+                            {/* ACCOUNT DROPDOWN */}
+
+                            {userMenuOpen && (
+                                <div
+                                    className="account-dropdown"
+                                    role="menu"
+                                >
+                                    {/* USER DETAILS */}
+
+                                    <div className="account-dropdown-header">
+
+                                        <div className="account-dropdown-avatar">
+                                            {userInitials || 'A'}
+                                        </div>
+
+                                        <div className="account-dropdown-identity">
+
+                                            <strong>
+                                                {user?.name || 'Administrator'}
+                                            </strong>
+
+                                            <span>
+                                                {user?.email || ''}
+                                            </span>
+
+                                            <span className="account-role-badge">
+                                                {userRole}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="account-dropdown-divider" />
+
+                                    <div className="account-dropdown-label">
+                                        MY ACCOUNT
+                                    </div>
+
+                                    {/* ACCOUNT LINKS */}
+
+                                    <div className="account-dropdown-links">
+
+                                        {accountMenuItems.map((item) => (
+                                            <Link
+                                                key={item.href}
+                                                href={item.href}
+                                                className="account-dropdown-link"
+                                                role="menuitem"
+                                                onClick={() =>
+                                                    setUserMenuOpen(false)
+                                                }
+                                            >
+                                                <span className="account-menu-icon">
+                                                    {item.icon}
+                                                </span>
+
+                                                <span className="account-menu-text">
+
+                                                    <strong>
+                                                        {item.label}
+                                                    </strong>
+
+                                                    <small>
+                                                        {item.description}
+                                                    </small>
+                                                </span>
+
+                                                <span className="account-menu-arrow">
+                                                    ›
+                                                </span>
+                                            </Link>
+                                        ))}
+                                    </div>
+
+                                    <div className="account-dropdown-divider" />
+
+                                    {/* LOGOUT */}
+
+                                    <div className="account-dropdown-footer">
+
+                                        <Link
+                                            href="/logout"
+                                            method="post"
+                                            as="button"
+                                            className="account-logout-button"
+                                            role="menuitem"
+                                            onClick={() =>
+                                                setUserMenuOpen(false)
+                                            }
+                                        >
+                                            <span>↪</span>
+                                            <span>Sign Out</span>
+                                        </Link>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </header>
+
+                {/* PAGE CONTENT */}
 
                 <main className="nac-content">
                     {children}
                 </main>
 
+                {/* FOOTER */}
+
                 <footer className="nac-footer">
+
                     <span>
                         © {new Date().getFullYear()} {platformName}
                     </span>
 
-                    <span>Powered by NAC Technologies</span>
+                    <span>
+                        Powered by NAC Technologies
+                    </span>
                 </footer>
             </div>
         </div>

@@ -442,3 +442,319 @@
         margin-left: 35px;
     }
 }
+
+/* =========================================
+   NACPASI USER ACCOUNT DROPDOWN
+========================================= */
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+}
+
+.header-account {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.header-account-trigger {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 7px 10px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all .2s ease;
+    font-family: inherit;
+    color: inherit;
+}
+
+.header-account-trigger:hover,
+.header-account-trigger.active {
+    background: #f0f7f2;
+    border-color: #dcebe0;
+}
+
+.header-avatar {
+    width: 41px;
+    height: 41px;
+    min-width: 41px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #176b40, #218653);
+    color: #ffffff;
+    border: 2px solid #e3f1e7;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.header-account-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+}
+
+.header-account-info strong {
+    color: #24392d;
+    font-size: 12px;
+    font-weight: 750;
+    max-width: 145px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.header-account-info > span {
+    color: #829087;
+    font-size: 10px;
+}
+
+.account-chevron {
+    color: #77867b;
+    font-size: 17px;
+    transition: transform .2s ease;
+}
+
+.account-chevron.rotated {
+    transform: rotate(180deg);
+}
+
+/* DROPDOWN */
+
+.account-dropdown {
+    position: absolute;
+    top: calc(100% + 13px);
+    right: 0;
+    width: 290px;
+    padding: 10px;
+    background: #ffffff;
+    border: 1px solid #e6eee8;
+    border-radius: 15px;
+    box-shadow: 0 15px 45px rgba(17, 54, 32, .15);
+    z-index: 1000;
+    animation: accountDropdownIn .18s ease-out;
+}
+
+@keyframes accountDropdownIn {
+    from {
+        opacity: 0;
+        transform: translateY(-7px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* USER IDENTITY */
+
+.account-dropdown-header {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 12px 9px 16px;
+}
+
+.account-dropdown-avatar {
+    width: 49px;
+    height: 49px;
+    min-width: 49px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    background: linear-gradient(135deg, #123d2b, #218653);
+    border-radius: 13px;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.account-dropdown-identity {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    gap: 4px;
+}
+
+.account-dropdown-identity > strong {
+    color: #183d2b;
+    font-size: 13px;
+    font-weight: 800;
+    max-width: 190px;
+    overflow-wrap: anywhere;
+}
+
+.account-dropdown-identity > span:not(.account-role-badge) {
+    color: #89958d;
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
+.account-role-badge {
+    display: inline-block;
+    margin-top: 3px;
+    padding: 4px 8px;
+    color: #176b40;
+    background: #e8f5ec;
+    border-radius: 20px;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+/* DIVIDER AND LABEL */
+
+.account-dropdown-divider {
+    height: 1px;
+    margin: 5px 0;
+    background: #edf1ee;
+}
+
+.account-dropdown-label {
+    padding: 12px 10px 7px;
+    color: #98a49b;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+}
+
+/* MENU LINKS */
+
+.account-dropdown-links {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.account-dropdown-link {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 10px;
+    text-decoration: none;
+    border-radius: 9px;
+    transition: background .2s ease;
+}
+
+.account-dropdown-link:hover {
+    background: #f1f7f3;
+}
+
+.account-menu-icon {
+    width: 35px;
+    height: 35px;
+    min-width: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #edf6ef;
+    border-radius: 9px;
+    font-size: 15px;
+}
+
+.account-menu-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.account-menu-text strong {
+    color: #304539;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.account-menu-text small {
+    color: #95a198;
+    font-size: 10px;
+}
+
+.account-menu-arrow {
+    color: #a3afa6;
+    font-size: 21px;
+}
+
+/* LOGOUT */
+
+.account-dropdown-footer {
+    padding: 5px 0 0;
+}
+
+.account-logout-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    padding: 11px;
+    color: #c43c3c;
+    background: #fff3f2;
+    border: 1px solid #f8e2e0;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.account-logout-button:hover {
+    color: #ffffff;
+    background: #c43c3c;
+    border-color: #c43c3c;
+}
+
+.account-logout-button span:first-child {
+    font-size: 17px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 650px) {
+    .header-right {
+        gap: 8px;
+    }
+
+    .header-status {
+        font-size: 10px;
+    }
+
+    .header-account-trigger {
+        gap: 7px;
+        padding: 5px;
+    }
+
+    .header-avatar {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+    }
+
+    .header-account-info {
+        display: none;
+    }
+
+    .account-dropdown {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: -5px;
+        width: min(290px, calc(100vw - 25px));
+    }
+}
+
+@media (max-width: 380px) {
+    .header-status {
+        display: none;
+    }
+}
