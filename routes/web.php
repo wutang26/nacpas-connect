@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\SiteController;
 use App\Http\Controllers\Admin\SaasPlanController;
 use App\Http\Controllers\Admin\OrganizationSubscriptionController;
+use App\Http\Controllers\Admin\SaasPaymentController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -480,5 +481,25 @@ Route::middleware(['auth', 'verified'])
             ->name('update');
     });
 
+    /*
+|--------------------------------------------------------------------------
+| SaaS Payment Management
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('saas-payments')
+    ->name('saas-payments.')
+    ->controller(SaasPaymentController::class)
+    ->group(function () {
+        Route::get('/', 'index')
+            ->middleware('permission:platform.payments.view')
+            ->name('index');
+
+        Route::get('/{saasPayment}', 'show')
+            ->whereNumber('saasPayment')
+            ->middleware('permission:platform.payments.view')
+            ->name('show');
+    });
 
 require __DIR__.'/auth.php';
