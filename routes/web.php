@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\DeviceAssetController;
 use App\Http\Controllers\Admin\NetworkConnectionController;
 use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\SiteController;
+use App\Http\Controllers\Admin\SaasPlanController;
 use Inertia\Inertia;
 
 Route::get('/', function () {
@@ -401,5 +402,43 @@ Route::middleware(['auth', 'verified'])
             ->middleware('permission:platform.sites.update')
             ->name('update');
     });
+
+
+/*
+|--------------------------------------------------------------------------
+| SaaS Plans Management
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth', 'verified'])
+    ->prefix('saas-plans')
+    ->name('saas-plans.')
+    ->controller(SaasPlanController::class)
+    ->group(function () {
+        Route::get('/', 'index')
+            ->middleware('permission:platform.saas_plans.view')
+            ->name('index');
+
+        Route::get('/create', 'create')
+            ->middleware('permission:platform.saas_plans.manage')
+            ->name('create');
+
+        Route::post('/', 'store')
+            ->middleware('permission:platform.saas_plans.manage')
+            ->name('store');
+
+        Route::get('/{saasPlan}/edit', 'edit')
+            ->middleware('permission:platform.saas_plans.manage')
+            ->name('edit');
+
+        Route::get('/{saasPlan}', 'show')
+            ->middleware('permission:platform.saas_plans.view')
+            ->name('show');
+
+        Route::put('/{saasPlan}', 'update')
+            ->middleware('permission:platform.saas_plans.manage')
+            ->name('update');
+    });
+
 
 require __DIR__.'/auth.php';

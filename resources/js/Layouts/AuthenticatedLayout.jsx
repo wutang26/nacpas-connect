@@ -197,6 +197,10 @@ export default function AuthenticatedLayout({ children }) {
             ],
         },
 
+        // =====================================
+        // HARDWARE MANAGEMENT
+        // =====================================
+
         ...(can('hardware.dashboard.view')
             ? [
                 {
@@ -232,6 +236,10 @@ export default function AuthenticatedLayout({ children }) {
             ]
             : []),
 
+        // =====================================
+        // NETWORK MANAGEMENT
+        // =====================================
+
         ...(can('network.management.view')
             ? [
                 {
@@ -247,26 +255,54 @@ export default function AuthenticatedLayout({ children }) {
             ]
             : []),
 
-        {
-            title: 'SAAS MANAGEMENT',
-            items: [
+        // =====================================
+        // SAAS MANAGEMENT
+        // =====================================
+
+        ...(can('platform.saas_plans.view') ||
+            can('platform.subscriptions.view') ||
+            can('platform.payments.view')
+            ? [
                 {
-                    label: 'SaaS Plans',
-                    icon: '📦',
-                    href: '/saas-plans',
+                    title: 'SAAS MANAGEMENT',
+                    items: [
+                        ...(can('platform.saas_plans.view')
+                            ? [
+                                {
+                                    label: 'SaaS Plans',
+                                    icon: '📦',
+                                    href: '/saas-plans',
+                                },
+                            ]
+                            : []),
+
+                        ...(can('platform.subscriptions.view')
+                            ? [
+                                {
+                                    label: 'Subscriptions',
+                                    icon: '🔄',
+                                    href: '/subscriptions',
+                                },
+                            ]
+                            : []),
+
+                        ...(can('platform.payments.view')
+                            ? [
+                                {
+                                    label: 'SaaS Payments',
+                                    icon: '💳',
+                                    href: '/saas-payments',
+                                },
+                            ]
+                            : []),
+                    ],
                 },
-                {
-                    label: 'Subscriptions',
-                    icon: '🔄',
-                    href: '/subscriptions',
-                },
-                {
-                    label: 'SaaS Payments',
-                    icon: '💳',
-                    href: '/saas-payments',
-                },
-            ],
-        },
+            ]
+            : []),
+
+        // =====================================
+        // REPORTS & SETTINGS
+        // =====================================
 
         {
             title: 'REPORTS & SETTINGS',
@@ -639,9 +675,7 @@ export default function AuthenticatedLayout({ children }) {
                         </div>
                     </div>
 
-                    {/* =================================
-                        HEADER RIGHT / USER DROPDOWN
-                    ================================= */}
+                    {/* HEADER RIGHT / USER DROPDOWN */}
 
                     <div className="header-right">
 
