@@ -28,8 +28,8 @@ class SiteController extends Controller
                 $query->where('owner_user_id', $user->id)
                     ->orWhereHas('users', function ($members) use ($user) {
                         $members->where('users.id', $user->id)
-                            ->wherePivot('status', 'active')
-                            ->wherePivotIn('role', ['owner', 'admin', 'manager']);
+                            ->where('organization_user.status', 'active')
+                            ->whereIn('organization_user.role', ['owner', 'admin', 'manager']);
                     });
             });
     }
@@ -49,7 +49,7 @@ class SiteController extends Controller
                 $query->whereIn('organization_id', $organizationIds)
                     ->orWhereHas('users', function ($members) use ($user) {
                         $members->where('users.id', $user->id)
-                            ->wherePivot('status', 'active');
+                            ->where('site_user.status', 'active');
                     });
             });
     }
@@ -69,8 +69,8 @@ class SiteController extends Controller
                 $query->whereIn('organization_id', $organizationIds)
                     ->orWhereHas('users', function ($members) use ($user) {
                         $members->where('users.id', $user->id)
-                            ->wherePivot('status', 'active')
-                            ->wherePivotIn('role', ['owner', 'manager']);
+                            ->where('site_user.status', 'active')
+                            ->whereIn('site_user.role', ['owner', 'manager']);
                     });
             });
     }

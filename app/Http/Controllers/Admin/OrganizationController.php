@@ -27,7 +27,7 @@ class OrganizationController extends Controller
                 $query->where('owner_user_id', $user->id)
                     ->orWhereHas('users', function ($members) use ($user) {
                         $members->where('users.id', $user->id)
-                            ->wherePivot('status', 'active');
+                            ->where('organization_user.status', 'active');
                     });
             });
     }
@@ -45,8 +45,8 @@ class OrganizationController extends Controller
                 $query->where('owner_user_id', $user->id)
                     ->orWhereHas('users', function ($members) use ($user) {
                         $members->where('users.id', $user->id)
-                            ->wherePivot('status', 'active')
-                            ->wherePivotIn('role', ['owner', 'admin', 'manager']);
+                            ->where('organization_user.status', 'active')
+                            ->whereIn('organization_user.role', ['owner', 'admin', 'manager']);
                     });
             });
     }
