@@ -81,9 +81,39 @@ class HotspotController extends Controller
                 fn ($name) => $request->query->has($name)
             );
 
-        // Normal portal visits do not require Omada parameters.
+        // Reuse a valid Omada context from this same browser session.
+        // Never create a synthetic context for an ordinary portal visit.
         if (!$hasOmadaParameters) {
-            return null;
+            $sessionId = $request->session()->getId();
+
+            if (!$sessionId) {
+                return null;
+            }
+
+            $sessionKey = 'wifi_portal_context_token:' . $site->id;
+            $sessionToken = $request->session()->get($sessionKey);
+
+            if (!$sessionToken) {
+                return null;
+            }
+
+            $context = WifiPortalContext::query()
+                ->where('context_token', $sessionToken)
+                ->where('site_id', $site->id)
+                ->where('session_hash', hash('sha256', $sessionId))
+                ->where('context_status', 'captured')
+                ->where('expires_at', '>', now())
+                ->whereNotNull('client_mac')
+                ->whereNotNull('client_ip')
+                ->first();
+
+            if (!$context) {
+                $request->session()->forget($sessionKey);
+
+                return null;
+            }
+
+            return $context->context_token;
         }
 
         $validator = Validator::make(
@@ -241,6 +271,11 @@ class HotspotController extends Controller
 
             'expires_at' => now()->addMinutes(60),
         ]);
+
+        $request->session()->put(
+            'wifi_portal_context_token:' . $site->id,
+            $contextToken
+        );
 
         return $contextToken;
     }

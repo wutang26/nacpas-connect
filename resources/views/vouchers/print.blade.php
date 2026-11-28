@@ -159,7 +159,7 @@
                 <img class="qr" src="{{ $voucher['qr'] }}" alt="Voucher QR">
 
                 <div class="instructions">
-                    Scan QR to read voucher code, then enter it on the WiFi portal.
+                    Scan QR to open the WiFi portal. Voucher code will be filled automatically.
                 </div>
 
                 @if ($voucher['expires_at'])

@@ -87,7 +87,10 @@ class VoucherPrintController extends Controller
             'packageName' => $batch->package?->name ?? 'WiFi Access',
             'batchNumber' => $batch->batch_number,
             'paperWidth' => (int) ($validated['width'] ?? 58),
-            'vouchers' => $this->prepareVouchers($records),
+            'vouchers' => $this->prepareVouchers(
+                $records,
+                url('/portal/' . rawurlencode($batch->site->slug))
+            ),
         ]);
     }
 
@@ -97,7 +100,7 @@ class VoucherPrintController extends Controller
     public function agent(Request $request): View
     {
         $agent = VoucherAgent::query()
-            ->with('site:id,name')
+            ->with('site:id,name,slug')
             ->where('user_id', $request->user()->id)
             ->firstOrFail();
 
@@ -156,7 +159,10 @@ class VoucherPrintController extends Controller
             'packageName' => null,
             'batchNumber' => null,
             'paperWidth' => (int) ($validated['width'] ?? 58),
-            'vouchers' => $this->prepareVouchers($records),
+            'vouchers' => $this->prepareVouchers(
+                $records,
+                url('/portal/' . rawurlencode($agent->site->slug))
+            ),
         ]);
     }
 
@@ -200,15 +206,15 @@ class VoucherPrintController extends Controller
     /**
      * Decrypt only after authorization and create QR images for printing.
      */
-    private function prepareVouchers($records): array
+    private function prepareVouchers($records, string $portalUrl): array
     {
         $writer = new SvgWriter();
 
-        return $records->map(function (Voucher $voucher) use ($writer) {
+        return $records->map(function (Voucher $voucher) use ($writer, $portalUrl) {
             $code = Crypt::decryptString($voucher->encrypted_code);
 
             $qr = new EndroidQrCode(
-                data: $code,
+                data: $portalUrl . '#voucher=' . rawurlencode($code),
                 encoding: new Encoding('UTF-8'),
                 errorCorrectionLevel: ErrorCorrectionLevel::High,
                 size: 180,

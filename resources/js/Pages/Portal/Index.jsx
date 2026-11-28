@@ -1,6 +1,6 @@
 
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './Index.css';
 
 const formatMoney = (amount, locale = 'en-TZ') =>
@@ -113,6 +113,32 @@ export default function Index({
         phone: '',
         context_token: contextToken || '',
     });
+
+    // Read a voucher code embedded in the QR URL fragment.
+    // Fragments are not sent to the server.
+    useEffect(() => {
+        const fragment = window.location.hash;
+
+        if (!fragment) {
+            return;
+        }
+
+        const params = new URLSearchParams(fragment.slice(1));
+        const voucherCode = params.get('voucher');
+
+        if (!voucherCode) {
+            return;
+        }
+
+        setVoucherData('voucher_code', voucherCode.toUpperCase());
+
+        // Remove the fragment while preserving Omada query parameters.
+        window.history.replaceState(
+            window.history.state,
+            '',
+            `${window.location.pathname}${window.location.search}`
+        );
+    }, [setVoucherData]);
 
     const phone = data.phone;
 
